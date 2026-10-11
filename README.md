@@ -1,38 +1,87 @@
 # PulseShift
 
-PulseShift estimates the chance of low hourly demand across the DC-area Capital Bikeshare network. It is a research prototype: a 12-feature logistic regression model uses weather, air quality and time of day. The browser app accepts manual inputs or loads a DC forecast to compare daytime hours.
+**Weather, air quality and DC-area bike-share demand.**
 
-[Open the app](https://urmeo.github.io/pulse-shift/) · [Visual results](https://urmeo.github.io/pulse-shift/results/) · [Data, methods and limitations](results/README.md) · [Development](docs/development.md)
+PulseShift estimates the chance that hourly Capital Bikeshare rides fall below half their expected count. A 12-feature logistic regression model runs in the browser. Enter conditions manually or load a DC forecast to compare daytime hours. This is a research prototype for aggregate network demand.
+
+[Open the app](https://urmeo.github.io/pulse-shift/) · [Charts and results](https://urmeo.github.io/pulse-shift/results/) · [Data and methods](results/README.md) · [Reproduce the analysis](docs/development.md)
+
+[![PulseShift browser app with weather inputs and a low-demand estimate](results/figures/pulseshift-ui.jpg)](https://urmeo.github.io/pulse-shift/)
 
 ## Pipeline
 
-```mermaid
-flowchart LR
-    A["Rides + weather + AQI"] --> B["DC hourly panel<br/>2022–2024"]
-    B --> C["Train on 2022–2023"]
-    C --> D["Test on 2024"]
-    D --> E["Charts + tables"]
-    B --> F["Refit on all active hours"]
-    F --> G["Browser estimates"]
-```
+[![Public rides, weather and AQI form an hourly panel. A 2022–2023 training and 2024 test split produces research results. A separate all-years refit supplies the browser model.](results/figures/pipeline.svg)](results/figures/pipeline.svg)
 
-Historical evaluation and the browser refit use separate models. Low demand means fewer than half the expected network rides. Training and evaluation include only hours with at least 20 expected rides.
+The historical test uses models trained on **2022–2023** and evaluated on **2024**. The browser uses separate coefficients refit on all **24,354 active hours**. Manual inputs or Open-Meteo weather and CAMS AQI forecasts supply its current conditions.
 
-## Results at a glance
+## Historical results
+
+**16,150 training hours → 8,204 test hours.** Low demand means rides below **50% of the expected count** for the season, weekday/weekend group and hour. Expected counts for the 2024 test use training data only. Training and evaluation include hours with at least 20 expected rides.
+
+| Model | AUROC ↑ | Average precision ↑ | Brier score ↓ | Calibration error (ECE) ↓ |
+| --- | ---: | ---: | ---: | ---: |
+| Climatology | 0.692 | 0.046 | 0.027 | 0.053 |
+| **Unweighted logistic** | **0.936** | **0.488** | **0.021** | **0.044** |
+| Balanced logistic | 0.940 | 0.448 | 0.128 | 0.253 |
+| Balanced logistic + isotonic calibration | 0.940 | 0.466 | 0.029 | 0.064 |
+| Gradient boosting | 0.942 | 0.526 | 0.025 | 0.046 |
+
+For the unweighted model, **95% intervals from resampling whole days** are **0.900–0.967** for AUROC, **0.319–0.638** for average precision and **0.017–0.026** for Brier score. Download the [model scores](results/tables/model_comparison.csv), [confidence intervals](results/tables/served_ci.csv) or [test predictions](results/tables/holdout_predictions.csv).
+
+[![Five models compared by AUROC, average precision and Brier score on the 2024 test set](results/figures/model_comparison.png)](results/figures/model_comparison.png)
 
 | ROC curves | Precision–recall curves |
 | --- | --- |
-| [![ROC curves on the 2024 holdout](results/figures/roc.png)](results/figures/roc.png) | [![Precision–recall curves on the 2024 holdout](results/figures/precision_recall.png)](results/figures/precision_recall.png) |
-| **Calibration** | **Model comparison** |
-| [![Predicted probabilities compared with observed rates](results/figures/reliability.png)](results/figures/reliability.png) | [![Holdout performance across five models](results/figures/model_comparison.png)](results/figures/model_comparison.png) |
+| [![ROC curves on the 2024 test set](results/figures/roc.png)](results/figures/roc.png) | [![Precision–recall curves for five models on the 2024 test set](results/figures/precision_recall.png)](results/figures/precision_recall.png) |
 
-The unweighted logistic model was trained on **16,150 active hours in 2022–2023** and tested on **8,204 active hours in 2024**:
+The unweighted model's mean prediction was **6.88%**, while the observed low-demand rate was **2.46%**. Its probabilities overestimate the 2024 event rate.
 
-| AUROC ↑ | Average precision ↑ | Brier score ↓ | Calibration error ↓ |
-| ---: | ---: | ---: | ---: |
-| 0.936 | 0.488 | 0.021 | 0.044 |
+| Calibration | Decision curve |
+| --- | --- |
+| [![Predicted probabilities compared with observed low-demand rates](results/figures/reliability.png)](results/figures/reliability.png) | [![Modeled net benefit across decision thresholds on the 2024 test set](results/figures/decision_curve.png)](results/figures/decision_curve.png) |
 
-Its mean prediction was **6.88%**, while the observed low-demand rate was **2.46%**. Probabilities overestimate the 2024 event rate. The [results guide](results/README.md) includes confidence intervals, all model scores, the separate Seoul refit and simulated time-shift scenarios.
+Open any chart to view it at full size.
+
+## Simulated time shifts
+
+Allowing shifts of up to **three hours** produced **1,126 shifts**, **9 cancellations** and **0 study-threshold violations**. Predicted recovery was **36.8% of modeled lost rides** (95% interval **33.0–40.9%**) under full transfer to the chosen hours. Assuming **50% transfer efficiency** gives **18.4%** recovery.
+
+These are simulations. Actual ride recovery and the benefits of changing ride times were not measured. See the [policy predictions](results/tables/policy_predictions.csv) and [sensitivity results](results/tables/sensitivity_policy.csv).
+
+[![Monthly predicted-risk reduction under the full-transfer time-shift scenario](results/figures/ram_by_month.png)](results/figures/ram_by_month.png)
+
+## AQI and smoke
+
+Adding AQI after weather changed AUROC from **0.936475 to 0.936477**. Average precision and Brier score became slightly worse. The [feature comparison](results/tables/ablation.csv) records the results.
+
+Daily and hourly AQI associations use different exposures and controls. Their difference does not establish causality or isolate measurement error. The heat and AQI exposure curves below are unadjusted associations.
+
+| Daily and hourly AQI associations | Heat and AQI exposure curves |
+| --- | --- |
+| [![Between-day daily-peak and within-day hourly AQI associations](results/figures/aqi_identification.png)](results/figures/aqi_identification.png) | [![Unadjusted low-demand rates by heat index and AQI](results/figures/exposure_response.png)](results/figures/exposure_response.png) |
+
+[![AQI and aggregate bike-share rides during the June 2023 DC smoke episode](results/figures/smoke_event.png)](results/figures/smoke_event.png)
+
+## Separate Seoul refit
+
+| Training hours | Test hours | AUROC | Average precision | Brier score |
+| ---: | ---: | ---: | ---: | ---: |
+| 6,305 | 2,160 | 0.873 | 0.694 | 0.064 |
+
+The Seoul analysis fits city-specific coefficients and holds out the **latest 25% of dates within each season**, keeping whole dates together. It does not test transfer of the DC coefficients or use a global chronological forecast split. See the [Seoul results](results/tables/seoul_validation.csv) and [dataset and split metadata](results/tables/seoul_provenance.json).
+
+## Data and tools
+
+| Item | Source or coverage |
+| --- | --- |
+| DC panel | 26,288 network-hours, 2022–2024; 16 calendar hours absent |
+| Rides | Capital Bikeshare aggregate hourly counts |
+| Weather | NOAA observations from Reagan National Airport (DCA) |
+| Air quality | CAMS hourly AQI for 80.3% of hours; EPA daily AQI fallback |
+| Research | Python, NumPy, pandas, scikit-learn, SciPy and Matplotlib |
+| Browser | HTML, CSS and JavaScript; no runtime packages |
+
+The repository includes the processed DC panel, its checksum, predictions and generated figures. [Summary metadata](results/tables/summary.json) record source hashes and runtime versions. The [methods guide](results/README.md) explains label construction, data coverage and evaluation conditions.
 
 ## Run locally
 
@@ -42,21 +91,28 @@ From the repository root:
 python3 -m http.server 8000
 ```
 
-Open [localhost:8000](http://localhost:8000) for the app or [localhost:8000/results/](http://localhost:8000/results/) for the visual report. Manual estimates run locally. Forecast loading requires internet access for Open-Meteo weather and CAMS US AQI data.
+Open [localhost:8000](http://localhost:8000) for the app or [localhost:8000/results/](http://localhost:8000/results/) for the visual report. Manual estimates run locally. Forecast loading requires internet access.
 
-The research uses **Python, NumPy, pandas, scikit-learn, SciPy and Matplotlib**. The app uses HTML, CSS and JavaScript, with no runtime packages. See the [development guide](docs/development.md) to install research dependencies, run checks and regenerate the results.
+The research is checked on Python **3.12, 3.13 and 3.14**. Create an environment and run the scripts against the committed panel:
 
-## Repository layout
-
-```text
-index.html    Browser app entry point
-app/          Browser code, styles and fitted model
-research/     Python analysis, scripts, tests and processed data
-results/      Visual report, figures, tables and methods
-docs/         Development and reproduction guide
-tests/        Browser behavior and Python/JavaScript agreement tests
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r research/requirements.txt
+cd research
+PYTHONPATH=. python scripts/run_analysis.py
+PYTHONPATH=. python scripts/train_model.py
+PYTHONPATH=. python scripts/validate_seoul.py
 ```
 
-This study measures aggregate bike-share demand. It does not measure health outcomes, individual activity or observed benefits from shifting rides. Recovery figures are simulations; live forecast accuracy has not been measured. Forecast comparisons exclude heat index ≥103°F and AQI ≥150, using study thresholds. Follow official advisories. See the [full limitations and operating conditions](results/README.md#limitations-and-operating-conditions).
+The Seoul script downloads the public UCI archive on its first run. See the [development guide](docs/development.md) for checks, panel rebuilding and generated file paths.
 
-Author and sole contributor: [urmeo](https://github.com/urmeo). Code is covered by the [MIT license](LICENSE); data providers' terms apply separately.
+## Limitations and operating conditions
+
+- The target is aggregate bike-share demand. Individual activity and health outcomes were not measured. Live forecast accuracy and actual time-shift benefits remain unmeasured.
+- Coarse CAMS data, daily AQI fallback, missing hours, changes over time and observational confounding limit interpretation.
+- Forecast comparisons use **06:00–21:00 DC time** within the next 24 hours. Hours with missing inputs, heat index **≥103°F** or AQI **≥150** are excluded. These are study thresholds; follow official advisories.
+
+Method references: [calibration](https://doi.org/10.1186/s12916-019-1466-7), [precision–recall evaluation](https://doi.org/10.1371/journal.pone.0118432), [decision curves](https://doi.org/10.1177/0272989X06295361), and the [Seoul Bike Sharing Demand dataset](https://doi.org/10.24432/C5F62R).
+
+Author and sole contributor: [urmeo](https://github.com/urmeo). The [MIT license](LICENSE) covers the code; data providers' terms apply separately.
