@@ -1,4 +1,4 @@
-"""Download and assemble real DC activity, weather, and air-quality series."""
+"""Download and assemble DC activity, weather, and air-quality series."""
 
 from __future__ import annotations
 
@@ -208,15 +208,15 @@ def load_aqi_hourly() -> pd.DataFrame:
             lat=config.DC_LAT, lon=config.DC_LON, year=year
         )
         dest = _download(url, config.RAW / f"aqi_hourly_utc_{year}.json")
-        h = json.loads(Path(dest).read_text())["hourly"]
+        hourly_data = json.loads(dest.read_text())["hourly"]
         frames.append(
             pd.DataFrame(
                 {
-                    "ts_utc": pd.to_datetime(h["time"], unit="s", utc=True).tz_localize(
-                        None
-                    ),
-                    "aqi_hourly": h["us_aqi"],
-                    "pm25": h["pm2_5"],
+                    "ts_utc": pd.to_datetime(
+                        hourly_data["time"], unit="s", utc=True
+                    ).tz_localize(None),
+                    "aqi_hourly": hourly_data["us_aqi"],
+                    "pm25": hourly_data["pm2_5"],
                 }
             )
         )

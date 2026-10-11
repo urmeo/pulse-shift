@@ -46,12 +46,12 @@ def main():
         "provenance": artifact_provenance(),
     }
 
-    root = config.ROOT.parent
-    (root / "model.js").write_text(
+    config.APP.mkdir(parents=True, exist_ok=True)
+    (config.APP / "model.js").write_text(
         "window.PULSESHIFT_MODEL = " + json.dumps(artifact) + ";\n"
     )
     print(
-        f"wrote model.js  (AUROC {artifact['meta']['auroc_2024']}, Brier {artifact['meta']['brier_2024']})"
+        f"wrote app/model.js  (AUROC {artifact['meta']['auroc_2024']}, Brier {artifact['meta']['brier_2024']})"
     )
 
 

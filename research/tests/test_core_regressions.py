@@ -260,7 +260,7 @@ def test_export_and_citation_use_current_version():
     from pulseshift import __version__, config
 
     root = config.ROOT.parent
-    exported = (root / "model.js").read_text()
+    exported = (config.APP / "model.js").read_text()
     artifact = json.loads(exported.split("=", 1)[1].strip().removesuffix(";"))
     assert artifact["meta"]["model_version"] == __version__
     assert f"version: {__version__}\n" in (root / "CITATION.cff").read_text()

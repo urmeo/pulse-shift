@@ -6,6 +6,7 @@ const test = require("node:test");
 const vm = require("node:vm");
 
 const root = path.resolve(__dirname, "..");
+const appRoot = path.join(root, "app");
 const fixedNow = Date.parse("2026-10-10T14:20:00Z");
 const currentEpoch = Math.floor(fixedNow / 3600000) * 3600;
 
@@ -58,8 +59,8 @@ function app(fetcher = async () => { throw new Error("offline"); }) {
       createElement: () => new Element("option"),
     },
   });
-  vm.runInContext(fs.readFileSync(path.join(root, "model.js"), "utf8"), context);
-  vm.runInContext(fs.readFileSync(path.join(root, "app.js"), "utf8"), context);
+  vm.runInContext(fs.readFileSync(path.join(appRoot, "model.js"), "utf8"), context);
+  vm.runInContext(fs.readFileSync(path.join(appRoot, "app.js"), "utf8"), context);
   return { context, elements, run: (code) => vm.runInContext(code, context) };
 }
 
@@ -84,6 +85,21 @@ function fetchForecast(data) {
   return async (url) => ({ ok: true, json: async () => url.includes("air-quality-api") ? data.air : data.weather });
 }
 
+test("published app and results pages reference existing local assets", () => {
+  for (const entry of ["index.html", "results/index.html"]) {
+    const htmlPath = path.join(root, entry);
+    const html = fs.readFileSync(htmlPath, "utf8");
+    const references = [...html.matchAll(/<(?:script|link|img)\b[^>]*(?:src|href)="([^"]+)"/g)]
+      .map((match) => match[1])
+      .filter((reference) => !/^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(reference));
+    assert.ok(references.length > 0, `${entry} must load local assets`);
+    for (const reference of references) {
+      const asset = path.resolve(path.dirname(htmlPath), reference.split(/[?#]/, 1)[0]);
+      assert.ok(fs.statSync(asset).isFile(), `missing asset in ${entry}: ${reference}`);
+    }
+  }
+});
+
 test("shipped JavaScript features and scores match Python across heat regimes", () => {
   const cases = [];
   for (const [temp, humidity] of [[-40, 0], [8, 0], [37, 100], [30, 60], [75, 30], [79, 90], [80, 86], [86, 90], [100, 39], [100, 10], [112, 5], [95, 70]]) {
@@ -93,7 +109,7 @@ test("shipped JavaScript features and scores match Python across heat regimes", 
 import json, math, pathlib, sys
 import numpy as np
 from pulseshift.features import heat_index_f
-model = json.loads(pathlib.Path('model.js').read_text().split('=', 1)[1].strip().removesuffix(';'))
+model = json.loads(pathlib.Path('app/model.js').read_text().split('=', 1)[1].strip().removesuffix(';'))
 out = []
 for x in json.load(sys.stdin):
     hi = float(heat_index_f(x['temp'], x['humidity']))
@@ -108,7 +124,7 @@ print(json.dumps(out))
   cases.forEach((input, i) => {
     instance.context.input = input;
     assert.equal(instance.run("heatIndex(input.temp, input.humidity)"), expected[i][0]);
-    assert.ok(Math.abs(instance.run("risk(input)") - expected[i][1]) < 1e-12);
+    assert.ok(Math.abs(instance.run("predictSuppression(input)") - expected[i][1]) < 1e-12);
   });
   assert.equal(instance.run("heatIndex(100, 39)"), 108.5);
 });
@@ -134,8 +150,8 @@ test("smoke and measured visibility are independent model inputs", () => {
   const { run, elements: e } = app();
   e.smoke.checked = true;
   e.visibility.value = "8.5";
-  assert.equal(run("features(read()).visibility_mi"), 8.5);
-  assert.equal(run("features(read()).smoke_haze"), 1);
+  assert.equal(run("features(readInputs()).visibility_mi"), 8.5);
+  assert.equal(run("features(readInputs()).smoke_haze"), 1);
 });
 
 test("HTTP error responses are rejected before parsing", async () => {
@@ -271,7 +287,7 @@ test("Enter submits without navigation and manual edits clear forecast ranking",
 
 test("displayed probability describes aggregate demand and threshold exceedance", () => {
   const { elements: e, run } = app();
-  assert.match(e.band.textContent, /demand suppression/);
+  assert.match(e.band.textContent, /low bike-share demand/);
   assert.match(e.reco.textContent, /network rides/);
   e.temp.value = "100";
   e.humidity.value = "39";

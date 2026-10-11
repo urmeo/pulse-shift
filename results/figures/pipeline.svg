@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="410" viewBox="0 0 1080 410" role="img" aria-labelledby="title description">
+  <title id="title">PulseShift data and model pipeline</title>
+  <desc id="description">Public rides, weather and AQI become an hourly panel. A training and test split produces research results. A separate all-years model refit supplies the browser app.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#38bdf8"/></marker>
+  </defs>
+  <rect width="1080" height="410" rx="12" fill="#101923"/>
+  <g fill="#182b3b" stroke="#34516a" stroke-width="1.5">
+    <rect x="24" y="123" width="210" height="134" rx="12"/>
+    <rect x="284" y="123" width="184" height="134" rx="12"/>
+    <rect x="525" y="40" width="245" height="114" rx="12"/>
+    <rect x="825" y="40" width="230" height="114" rx="12"/>
+    <rect x="525" y="256" width="245" height="114" rx="12"/>
+    <rect x="825" y="256" width="230" height="114" rx="12"/>
+  </g>
+  <g fill="none" stroke="#38bdf8" stroke-width="2.5" marker-end="url(#arrow)">
+    <path d="M234 190 H276"/>
+    <path d="M468 190 H493 V97 H517"/>
+    <path d="M468 190 H493 V313 H517"/>
+    <path d="M770 97 H817"/>
+    <path d="M770 313 H817"/>
+  </g>
+  <g font-family="Arial, sans-serif" text-anchor="middle" fill="#e8eef4" font-size="18">
+    <text x="129" y="155" font-weight="700">Public sources</text>
+    <text x="129" y="185" font-size="16">Capital Bikeshare</text>
+    <text x="129" y="210" font-size="16">NOAA weather</text>
+    <text x="129" y="235" font-size="16">CAMS + EPA AQI</text>
+    <text x="376" y="166" font-weight="700">Hourly panel</text>
+    <text x="376" y="197" font-size="16">26,288 hours</text>
+    <text x="376" y="225" font-size="15" fill="#9fb0c0">Define low demand</text>
+    <text x="647" y="72" font-weight="700">Evaluate</text>
+    <text x="647" y="101" font-size="16">Train: 2022–2023</text>
+    <text x="647" y="128" font-size="16">Test: 2024</text>
+    <text x="940" y="72" font-weight="700">Charts + tables</text>
+    <text x="940" y="101" font-size="16">ROC · PR · calibration</text>
+    <text x="940" y="128" font-size="15" fill="#9fb0c0">Historical test results</text>
+    <text x="647" y="288" font-weight="700">Refit on all years</text>
+    <text x="647" y="317" font-size="16">Unweighted logistic</text>
+    <text x="647" y="344" font-size="16">24,354 active hours</text>
+    <text x="940" y="288" font-weight="700">Browser estimate</text>
+    <text x="940" y="317" font-size="16">Manual inputs</text>
+    <text x="940" y="344" font-size="16">or DC forecast</text>
+  </g>
+</svg>

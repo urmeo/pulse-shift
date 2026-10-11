@@ -19,7 +19,11 @@ def file_sha256(path: Path) -> str:
 def artifact_provenance(panel_path: Path | None = None) -> dict:
     root = config.ROOT.parent
     sources = sorted(
-        [*config.ROOT.glob("pulseshift/*.py"), *config.ROOT.glob("scripts/*.py")]
+        [
+            *config.ROOT.glob("pulseshift/*.py"),
+            *config.ROOT.glob("scripts/*.py"),
+            *config.ROOT.glob("templates/*.html"),
+        ]
     )
     hashes = {str(path.relative_to(root)): file_sha256(path) for path in sources}
     digest = hashlib.sha256()

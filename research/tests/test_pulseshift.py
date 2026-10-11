@@ -189,9 +189,7 @@ def test_measurement_error_deattenuates():
 
 def test_served_model_matches_export():
     "model.js must reproduce a fresh unweighted fit: features, scaler, and coefficients."
-    model_path = config.ROOT.parent / "model.js"
-    if not model_path.exists():
-        pytest.skip("model.js not built")
+    model_path = config.APP / "model.js"
     m = json.loads(
         model_path.read_text().removeprefix("window.PULSESHIFT_MODEL = ").rstrip(";\n")
     )
@@ -207,9 +205,7 @@ def test_served_model_matches_export():
 
 def test_export_constants_match_config():
     """Exported safety + thermal-stress hinges must match config so the app can't drift."""
-    model_path = config.ROOT.parent / "model.js"
-    if not model_path.exists():
-        pytest.skip("model.js not built")
+    model_path = config.APP / "model.js"
     m = json.loads(
         model_path.read_text().removeprefix("window.PULSESHIFT_MODEL = ").rstrip(";\n")
     )
@@ -265,9 +261,7 @@ def test_policy_cancels_when_no_safe_window():
 
 def test_export_scores_match_pipeline():
     "The shipped arrays must reproduce the model's probabilities, not just its coefficients."
-    model_path = config.ROOT.parent / "model.js"
-    if not model_path.exists():
-        pytest.skip("model.js not built")
+    model_path = config.APP / "model.js"
     m = json.loads(
         model_path.read_text().removeprefix("window.PULSESHIFT_MODEL = ").rstrip(";\n")
     )

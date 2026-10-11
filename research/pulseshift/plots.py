@@ -8,6 +8,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.ticker import PercentFormatter
+from sklearn.metrics import precision_recall_curve, roc_curve
 
 from . import config
 from .calibration import reliability
@@ -19,8 +21,21 @@ plt.rcParams.update(
         "font.size": 11,
         "axes.spines.top": False,
         "axes.spines.right": False,
+        "axes.titleweight": "bold",
+        "axes.labelcolor": "#334155",
+        "text.color": "#0f172a",
+        "legend.frameon": False,
+        "lines.linewidth": 2,
     }
 )
+
+MODEL_COLORS = {
+    "Climatology": "#64748b",
+    "Logistic (unweighted)": "#2563eb",
+    "Logistic (balanced)": "#d97706",
+    "Logistic (balanced) + calibration": "#7c3aed",
+    "Gradient boosting": "#0f766e",
+}
 
 
 def _save(fig, name: str) -> None:
@@ -33,32 +48,120 @@ def _save(fig, name: str) -> None:
 def reliability_plot(y, balanced, served) -> None:
     fig, ax = plt.subplots(figsize=(14, 6))
     ax.plot([0, 1], [0, 1], "--", color="gray", lw=1, label="Perfect")
-    for prob, lab, color in [
-        (balanced, "Balanced", "#c44"),
-        (served, "Unweighted (holdout)", "#2a7"),
+    for prob, label in [
+        (balanced, "Logistic (balanced)"),
+        (served, "Logistic (unweighted)"),
     ]:
         mp, fp = reliability(y, prob, n_bins=10)
-        ax.plot(mp, fp, "o-", color=color, label=lab)
-    ax.set_xlabel("Predicted suppression probability")
-    ax.set_ylabel("Observed suppression rate")
-    ax.set_title("2024 holdout calibration")
+        ax.plot(mp, fp, "o-", color=MODEL_COLORS[label], label=label)
+    ax.set_xlabel("Predicted probability of low demand")
+    ax.set_ylabel("Observed low-demand rate")
+    ax.set_title(f"{config.TEST_YEAR} holdout: probability calibration")
     ax.legend()
     _save(fig, "reliability.png")
 
 
 def roc_plot(curves: dict) -> None:
-    from sklearn.metrics import roc_curve
-
-    fig, ax = plt.subplots(figsize=(14, 6))
-    ax.plot([0, 1], [0, 1], "--", color="gray", lw=1)
+    fig, ax = plt.subplots(figsize=(11, 6))
+    ax.plot([0, 1], [0, 1], "--", color="#94a3b8", lw=1, label="Chance (AUROC 0.500)")
     for label, (y, p, auc) in curves.items():
         fpr, tpr, _ = roc_curve(y, p)
-        ax.plot(fpr, tpr, label=f"{label} (AUROC {auc:.2f})")
+        ax.plot(
+            fpr,
+            tpr,
+            color=MODEL_COLORS.get(label),
+            label=f"{label} (AUROC {auc:.3f})",
+        )
+    ax.set(xlim=(0, 1), ylim=(0, 1))
+    ax.xaxis.set_major_formatter(PercentFormatter(1))
+    ax.yaxis.set_major_formatter(PercentFormatter(1))
+    ax.grid(alpha=0.15)
     ax.set_xlabel("False positive rate")
-    ax.set_ylabel("True positive rate")
-    ax.set_title("Discrimination")
-    ax.legend()
+    ax.set_ylabel("True positive rate (sensitivity)")
+    ax.set_title(f"{config.TEST_YEAR} holdout: ROC curves")
+    ax.legend(loc="lower right")
     _save(fig, "roc.png")
+
+
+def precision_recall_plot(curves: dict) -> None:
+    """Plot held-out precision and recall; AP uses sklearn's average precision."""
+    fig, ax = plt.subplots(figsize=(11, 6))
+    for label, (y, p, average_precision) in curves.items():
+        precision, recall, _ = precision_recall_curve(y, p)
+        ax.step(
+            recall,
+            precision,
+            where="post",
+            color=MODEL_COLORS.get(label),
+            label=f"{label} (AP {average_precision:.3f})",
+        )
+    labels = next(iter(curves.values()))[0]
+    prevalence = np.asarray(labels).mean()
+    ax.axhline(
+        prevalence,
+        color="#94a3b8",
+        ls="--",
+        lw=1,
+        label=f"Event prevalence ({prevalence:.2%})",
+    )
+    ax.set(xlim=(0, 1), ylim=(0, 1))
+    ax.xaxis.set_major_formatter(PercentFormatter(1))
+    ax.yaxis.set_major_formatter(PercentFormatter(1))
+    ax.grid(alpha=0.15)
+    ax.set_xlabel("Recall (share of low-demand hours detected)")
+    ax.set_ylabel("Precision (share of flagged hours with low demand)")
+    ax.set_title(f"{config.TEST_YEAR} holdout: precision–recall curves")
+    ax.legend(loc="upper right", title="AP = average precision")
+    _save(fig, "precision_recall.png")
+
+
+def model_comparison_plot(comparison: pd.DataFrame) -> None:
+    """Compare discrimination and probability error on separate score scales."""
+    fig, (ranking, error) = plt.subplots(
+        1, 2, figsize=(14, 6), sharey=True, gridspec_kw={"width_ratios": [1.6, 1]}
+    )
+    positions = np.arange(len(comparison))
+    for offset, column, label, color in [
+        (-0.18, "auroc", "AUROC", "#2563eb"),
+        (0.18, "auprc", "Average precision (AP)", "#0f766e"),
+    ]:
+        bars = ranking.barh(
+            positions + offset,
+            comparison[column],
+            height=0.32,
+            color=color,
+            label=label,
+        )
+        ranking.bar_label(bars, fmt="%.3f", padding=4, fontsize=9)
+    ranking.set_yticks(
+        positions,
+        comparison["model"].str.replace(
+            " + calibration", "\n+ calibration", regex=False
+        ),
+    )
+    ranking.invert_yaxis()
+    ranking.set_xlim(0, 1.1)
+    ranking.set_xticks(np.linspace(0, 1, 6))
+    ranking.set_xlabel("Score (0–1)")
+    ranking.set_title("Ranking quality · higher is better")
+    ranking.legend(loc="lower right", fontsize=10)
+
+    bars = error.barh(positions, comparison["brier"], height=0.5, color="#7c3aed")
+    error.bar_label(bars, fmt="%.3f", padding=4, fontsize=9)
+    error.set_xlim(0, comparison["brier"].max() * 1.25)
+    error.set_xlabel("Brier score")
+    error.set_title("Probability error · lower is better")
+    error.tick_params(axis="y", left=False)
+    for ax in (ranking, error):
+        ax.set_axisbelow(True)
+        ax.grid(axis="x", alpha=0.15)
+    sample = comparison.iloc[0]
+    fig.suptitle(
+        f"{config.TEST_YEAR} holdout model comparison\n"
+        f"{int(sample['n']):,} active hours · event prevalence {sample['base_rate']:.2%}",
+        fontsize=14,
+    )
+    _save(fig, "model_comparison.png")
 
 
 def decision_plot(y, p) -> None:

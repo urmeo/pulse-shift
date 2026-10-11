@@ -15,7 +15,7 @@ from sklearn.metrics import (
 )
 from sklearn.pipeline import Pipeline
 
-from pulseshift import airquality, config, decision, equity, plots, ram, safety
+from pulseshift import airquality, config, decision, equity, plots, ram, report, safety
 from pulseshift.calibration import calibrate_cv
 from pulseshift.evaluation import bootstrap_ci, expected_calibration_error, metrics
 from pulseshift.features import MODEL_FEATURES
@@ -28,22 +28,30 @@ from pulseshift.models import (
 )
 from pulseshift.panel import active, label_suppression, load_panel, suppression_mask
 from pulseshift.provenance import artifact_provenance
-from pulseshift.tables import write_table as _write_table
+from pulseshift.tables import write_table
+
+MODEL_NAMES = {
+    "clim": "Climatology",
+    "unw": "Logistic (unweighted)",
+    "bal": "Logistic (balanced)",
+    "cal": "Logistic (balanced) + calibration",
+    "gbm": "Gradient boosting",
+}
 
 
 def fit_models(
     train_all: pd.DataFrame, work: pd.DataFrame, test: pd.DataFrame
 ) -> tuple[dict, Pipeline]:
-    """Fit baselines + models; return test-set predictions and the served model."""
-    clim = ClimatologyBaseline().fit(train_all)
-    logit_unw = fit_logistic(train_all, balanced=False)
-    logit = fit_logistic(train_all, balanced=True)
+    """Fit holdout models and a logistic model on all active hours."""
+    climatology = ClimatologyBaseline().fit(train_all)
+    unweighted = fit_logistic(train_all, balanced=False)
+    balanced = fit_logistic(train_all, balanced=True)
     calibrated = calibrate_cv(train_all, method="isotonic", cv=5, balanced=True)
     served = fit_logistic(work, balanced=False)
     preds = {
-        "clim": clim.predict_proba(test)[:, 1],
-        "unw": predict(logit_unw, test),
-        "bal": predict(logit, test),
+        "clim": climatology.predict_proba(test)[:, 1],
+        "unw": predict(unweighted, test),
+        "bal": predict(balanced, test),
         "cal": calibrated.predict_proba(test[MODEL_FEATURES])[:, 1],
         "gbm": predict(fit_gbm(train_all), test),
     }
@@ -51,53 +59,48 @@ def fit_models(
 
 
 def model_comparison(test: pd.DataFrame, preds: dict) -> pd.DataFrame:
-    _write_table(
+    """Write holdout predictions and compare each model's metrics."""
+    write_table(
         test[["ts_utc", "ts_local", "suppressed"]].assign(**preds),
         "holdout_predictions",
     )
     comparison = pd.DataFrame(
-        [
-            {"model": "Climatology", **metrics(test["suppressed"], preds["clim"])},
-            {
-                "model": "Logistic (unweighted)",
-                **metrics(test["suppressed"], preds["unw"]),
-            },
-            {
-                "model": "Logistic (balanced)",
-                **metrics(test["suppressed"], preds["bal"]),
-            },
-            {
-                "model": "Logistic (balanced) + calibration",
-                **metrics(test["suppressed"], preds["cal"]),
-            },
-            {"model": "Gradient boosting", **metrics(test["suppressed"], preds["gbm"])},
-        ]
+        {"model": name, **metrics(test["suppressed"], preds[key])}
+        for key, name in MODEL_NAMES.items()
     )
-    _write_table(comparison, "model_comparison")
+    write_table(comparison, "model_comparison")
     return comparison
 
 
 def served_confidence_intervals(test: pd.DataFrame, p_unw: np.ndarray) -> dict:
-    yt = test["suppressed"].to_numpy()
+    """Bootstrap holdout metrics by day for the unweighted logistic model."""
+    labels = test["suppressed"].to_numpy()
     days = test["ts_local"].dt.normalize().to_numpy()
     ci = {
         "auroc": bootstrap_ci(
-            yt, p_unw, roc_auc_score, require_two_classes=True, groups=days
+            labels, p_unw, roc_auc_score, require_two_classes=True, groups=days
         ),
         "auprc": bootstrap_ci(
-            yt, p_unw, average_precision_score, require_two_classes=True, groups=days
+            labels,
+            p_unw,
+            average_precision_score,
+            require_two_classes=True,
+            groups=days,
         ),
-        "brier": bootstrap_ci(yt, p_unw, brier_score_loss, groups=days),
+        "brier": bootstrap_ci(labels, p_unw, brier_score_loss, groups=days),
         "ece": bootstrap_ci(
-            yt,
+            labels,
             p_unw,
             lambda y, p: expected_calibration_error(np.asarray(y), np.asarray(p)),
             groups=days,
         ),
     }
-    _write_table(
+    write_table(
         pd.DataFrame(
-            [{"metric": k, "low": lo, "high": hi} for k, (lo, hi) in ci.items()]
+            [
+                {"metric": metric, "low": low, "high": high}
+                for metric, (low, high) in ci.items()
+            ]
         ),
         "served_ci",
     )
@@ -105,53 +108,63 @@ def served_confidence_intervals(test: pd.DataFrame, p_unw: np.ndarray) -> dict:
 
 
 def coefficients_and_exposure(work: pd.DataFrame, served: Pipeline) -> None:
-    coef = pd.DataFrame(
+    coefficients = pd.DataFrame(
         {"feature": MODEL_FEATURES, "coefficient": served.named_steps["clf"].coef_[0]}
     ).sort_values("coefficient", key=abs, ascending=False)
-    _write_table(coef, "logistic_coefficients")
+    write_table(coefficients, "logistic_coefficients")
 
     rows = []
-    for var, edges in [
+    for variable, edges in [
         ("heat_index_f", [0, 40, 55, 70, 80, 90, 130]),
         ("aqi", [0, 50, 75, 100, 150, 400]),
     ]:
-        for interval, g in work.groupby(pd.cut(work[var], edges), observed=True):
+        for interval, group in work.groupby(
+            pd.cut(work[variable], edges), observed=True
+        ):
             rows.append(
                 {
-                    "variable": var,
+                    "variable": variable,
                     "bin": str(interval),
-                    "n": len(g),
-                    "suppression_rate": g["suppressed"].mean(),
+                    "n": len(group),
+                    "suppression_rate": group["suppressed"].mean(),
                 }
             )
-    _write_table(pd.DataFrame(rows), "exposure_response")
+    write_table(pd.DataFrame(rows), "exposure_response")
 
 
 def decision_and_cost(test: pd.DataFrame, p_unw: np.ndarray) -> list:
-    """Decision-curve net benefit, plus operating points at explicit cost ratios."""
-    yt = test["suppressed"].to_numpy()
+    """Calculate net benefit and operating points for specified cost ratios."""
+    labels = test["suppressed"].to_numpy()
     thresholds = [0.05, 0.1, 0.2, 0.3, 0.4, 0.5]
-    nb_model, nb_all = decision.net_benefit(test["suppressed"], p_unw, thresholds)
-    _write_table(
-        pd.DataFrame({"threshold": thresholds, "model": nb_model, "adapt_all": nb_all}),
+    model_benefit, adapt_all_benefit = decision.net_benefit(
+        test["suppressed"], p_unw, thresholds
+    )
+    write_table(
+        pd.DataFrame(
+            {
+                "threshold": thresholds,
+                "model": model_benefit,
+                "adapt_all": adapt_all_benefit,
+            }
+        ),
         "decision_curve",
     )
 
     cost_rows = []
     for ratio in (5, 10, 20):
-        t = 1 / (1 + ratio)
-        flag = p_unw >= t
-        tn, fp, fn, tp = confusion_matrix(yt, flag).ravel()
+        threshold = 1 / (1 + ratio)
+        flagged = p_unw >= threshold
+        tn, fp, fn, tp = confusion_matrix(labels, flagged).ravel()
         cost_rows.append(
             {
                 "cost_ratio_miss_to_flag": ratio,
-                "threshold": round(t, 3),
+                "threshold": round(threshold, 3),
                 "sensitivity": round(tp / (tp + fn), 3),
                 "specificity": round(tn / (tn + fp), 3),
-                "flagged_share": round(float(flag.mean()), 3),
+                "flagged_share": round(float(flagged.mean()), 3),
             }
         )
-    _write_table(pd.DataFrame(cost_rows), "cost_threshold")
+    write_table(pd.DataFrame(cost_rows), "cost_threshold")
     return cost_rows
 
 
@@ -162,24 +175,27 @@ def figures(
     preds: dict,
     comparison: pd.DataFrame,
 ) -> None:
-    yt = test["suppressed"].to_numpy()
-    plots.reliability_plot(yt, preds["bal"], preds["unw"])
+    labels = test["suppressed"].to_numpy()
+    scores = comparison.set_index("model")
+    plots.reliability_plot(labels, preds["bal"], preds["unw"])
     plots.roc_plot(
         {
-            "Climatology": (
-                test["suppressed"],
-                preds["clim"],
-                comparison.iloc[0]["auroc"],
-            ),
-            "Balanced": (test["suppressed"], preds["bal"], comparison.iloc[2]["auroc"]),
-            "Unweighted (holdout)": (
-                test["suppressed"],
-                preds["unw"],
-                comparison.iloc[1]["auroc"],
-            ),
+            MODEL_NAMES[key]: (
+                labels,
+                preds[key],
+                scores.loc[MODEL_NAMES[key], "auroc"],
+            )
+            for key in ("clim", "bal", "unw")
         }
     )
-    plots.decision_plot(yt, preds["unw"])
+    plots.precision_recall_plot(
+        {
+            name: (labels, preds[key], scores.loc[name, "auprc"])
+            for key, name in MODEL_NAMES.items()
+        }
+    )
+    plots.model_comparison_plot(comparison)
+    plots.decision_plot(labels, preds["unw"])
     plots.exposure_response(work)
     plots.smoke_event(panel)
 
@@ -187,14 +203,14 @@ def figures(
 def recovered_active_minutes(
     test: pd.DataFrame, p_unw: np.ndarray
 ) -> tuple[pd.DataFrame, dict, dict, list]:
-    """Predicted-risk time-shift scenario, bootstrapped over days."""
+    """Estimate a time-shift scenario from predicted risk and bootstrap by day."""
     scored = test.assign(risk=p_unw)
-    reco = ram.recommend(scored)
-    ram_stats = ram.ram_table(reco)
-    plots.ram_by_month(reco, ram_stats["per_hour"])
-    audit = safety.audit(reco)
-    _write_table(
-        reco[
+    recommendations = ram.recommend(scored)
+    ram_stats = ram.ram_table(recommendations)
+    plots.ram_by_month(recommendations, ram_stats["per_hour"])
+    audit = safety.audit(recommendations)
+    write_table(
+        recommendations[
             [
                 "ts_utc",
                 "ts_local",
@@ -214,9 +230,11 @@ def recovered_active_minutes(
     by_day = (
         pd.DataFrame(
             {
-                "day": reco["ts_local"].dt.date.to_numpy(),
+                "day": recommendations["ts_local"].dt.date.to_numpy(),
                 "recovered": ram_stats["per_hour"].to_numpy(),
-                "lost": (reco["expected_rides"] * reco["risk"]).to_numpy(),
+                "lost": (
+                    recommendations["expected_rides"] * recommendations["risk"]
+                ).to_numpy(),
             }
         )
         .groupby("day")[["recovered", "lost"]]
@@ -226,11 +244,10 @@ def recovered_active_minutes(
     days = by_day.index.to_numpy()
     ratios = []
     for _ in range(1000):
-        g = by_day.loc[rng.choice(days, size=len(days), replace=True)]
-        ratios.append(
-            g["recovered"].sum() / g["lost"].sum() if g["lost"].sum() else 0.0
-        )
-    ram_ci = [float(x) for x in np.percentile(ratios, [2.5, 97.5])]
+        sample = by_day.loc[rng.choice(days, size=len(days), replace=True)]
+        lost = sample["lost"].sum()
+        ratios.append(sample["recovered"].sum() / lost if lost else 0.0)
+    ram_ci = [float(bound) for bound in np.percentile(ratios, [2.5, 97.5])]
     return scored, ram_stats, audit, ram_ci
 
 
@@ -238,7 +255,7 @@ def smoke_event(panel: pd.DataFrame) -> dict:
     event = panel[
         (panel["ts_local"] >= "2023-06-06") & (panel["ts_local"] < "2023-06-10")
     ]
-    event_tbl = (
+    event_table = (
         event.groupby(event["ts_local"].dt.date)
         .agg(
             aqi=("aqi", "max"),
@@ -248,10 +265,10 @@ def smoke_event(panel: pd.DataFrame) -> dict:
         .reset_index()
         .rename(columns={"ts_local": "date"})
     )
-    event_tbl["rides_vs_expected"] = (event_tbl["rides"] / event_tbl["expected"]).round(
-        2
-    )
-    _write_table(event_tbl, "smoke_event")
+    event_table["rides_vs_expected"] = (
+        event_table["rides"] / event_table["expected"]
+    ).round(2)
+    write_table(event_table, "smoke_event")
 
     summer = panel[
         (panel["ts_local"] >= "2023-06-01")
@@ -259,7 +276,7 @@ def smoke_event(panel: pd.DataFrame) -> dict:
         & (panel["daytype"] == "weekday")
     ]
     daily_ratio = summer.groupby(summer["ts_local"].dt.date).apply(
-        lambda d: d["rides_total"].sum() / d["expected_rides"].sum()
+        lambda day: day["rides_total"].sum() / day["expected_rides"].sum()
     )
     jun8 = float(daily_ratio.loc[pd.Timestamp("2023-06-08").date()])
     return {
@@ -277,15 +294,15 @@ def aqi_identification(work: pd.DataFrame) -> dict:
     episodes = airquality.smoke_episodes(work, aqi_thresh=100)
     plots.aqi_identification_plot(between, within)
 
-    cols = ["identification", "effect_per_50", "ci_low", "ci_high", "se", "n"]
+    columns = ["identification", "effect_per_50", "ci_low", "ci_high", "se", "n"]
     ladder = pd.DataFrame(
         [
             {"identification": "between-day (controlled)", **between},
             {"identification": "within-day fixed effects", **within},
         ]
-    )[cols]
-    _write_table(ladder, "aqi_identification")
-    _write_table(pd.DataFrame([episodes]), "smoke_episodes")
+    )[columns]
+    write_table(ladder, "aqi_identification")
+    write_table(pd.DataFrame([episodes]), "smoke_episodes")
 
     power = pd.DataFrame(
         [
@@ -298,10 +315,10 @@ def aqi_identification(work: pd.DataFrame) -> dict:
             }
         ]
     )
-    _write_table(power, "aqi_power")
+    write_table(power, "aqi_power")
 
     error = airquality.measurement_error_bound(work, within["effect_per_50"])
-    _write_table(pd.DataFrame(error["rows"]), "measurement_error")
+    write_table(pd.DataFrame(error["rows"]), "measurement_error")
     return {
         "between_day": between,
         "within_day": within,
@@ -311,26 +328,26 @@ def aqi_identification(work: pd.DataFrame) -> dict:
 
 
 def aqi_coefficient(work: pd.DataFrame) -> list:
-    """All-data logistic coefficient: composite hourly versus daily AQI."""
-    ai = MODEL_FEATURES.index("aqi")
+    """Compare logistic AQI coefficients for hourly and daily exposures."""
+    aqi_index = MODEL_FEATURES.index("aqi")
     hourly = fit_logistic(work, balanced=False)
     daily = fit_logistic(work.assign(aqi=work["aqi_epa_daily"]), balanced=False)
     rows = [
         {
             "aqi_source": "hourly (served)",
-            "std_coefficient": float(hourly.named_steps["clf"].coef_[0][ai]),
+            "std_coefficient": float(hourly.named_steps["clf"].coef_[0][aqi_index]),
         },
         {
             "aqi_source": "daily",
-            "std_coefficient": float(daily.named_steps["clf"].coef_[0][ai]),
+            "std_coefficient": float(daily.named_steps["clf"].coef_[0][aqi_index]),
         },
     ]
-    _write_table(pd.DataFrame(rows), "aqi_coefficient")
+    write_table(pd.DataFrame(rows), "aqi_coefficient")
     return rows
 
 
 def feature_ablation(train_all: pd.DataFrame, test: pd.DataFrame) -> list:
-    """Marginal value of each feature group, out-of-time."""
+    """Compare holdout metrics as weather and air quality features are added."""
     groups = {
         "temporal": ["hour_sin", "hour_cos", "is_weekend"],
         "+ weather": [
@@ -344,79 +361,83 @@ def feature_ablation(train_all: pd.DataFrame, test: pd.DataFrame) -> list:
         ],
         "+ air quality": ["aqi", "smoke_haze"],
     }
-    cols, rows = [], []
-    for name, feats in groups.items():
-        cols += feats
-        m = metrics(
+    features = []
+    rows = []
+    for name, group_features in groups.items():
+        features.extend(group_features)
+        scores = metrics(
             test["suppressed"],
             predict(
-                fit_logistic(train_all, balanced=False, features=cols),
+                fit_logistic(train_all, balanced=False, features=features),
                 test,
-                features=cols,
+                features=features,
             ),
         )
         rows.append(
             {
                 "features": name,
-                "auroc": m["auroc"],
-                "auprc": m["auprc"],
-                "brier": m["brier"],
-                "ece": m["ece"],
+                "auroc": scores["auroc"],
+                "auprc": scores["auprc"],
+                "brier": scores["brier"],
+                "ece": scores["ece"],
             }
         )
-    _write_table(pd.DataFrame(rows), "ablation")
+    write_table(pd.DataFrame(rows), "ablation")
     return rows
 
 
 def subgroups(test_with_risk: pd.DataFrame, panel: pd.DataFrame) -> pd.DataFrame:
-    _write_table(equity.strata_metrics(test_with_risk, "season"), "equity_by_season")
-    _write_table(equity.strata_metrics(test_with_risk, "daytype"), "equity_by_daytype")
+    write_table(equity.strata_metrics(test_with_risk, "season"), "equity_by_season")
+    write_table(equity.strata_metrics(test_with_risk, "daytype"), "equity_by_daytype")
     burden = equity.rider_burden(panel)
-    _write_table(burden, "rider_burden")
+    write_table(burden, "rider_burden")
     return burden
 
 
 def label_sensitivity(work: pd.DataFrame) -> None:
     rows = []
     for ratio in config.SENSITIVITY_RATIOS:
-        _, lab = label_suppression(work, ratio=ratio)
-        tr, te = temporal_split(work.assign(suppressed=lab))
-        p = predict(fit_logistic(tr, balanced=False), te)
-        row = {"ratio": ratio, "base_rate": float(lab.mean())}
-        row.update(
-            {k: metrics(te["suppressed"], p)[k] for k in ["auroc", "brier", "ece"]}
+        _, labels = label_suppression(work, ratio=ratio)
+        train, test = temporal_split(work.assign(suppressed=labels))
+        predictions = predict(fit_logistic(train, balanced=False), test)
+        scores = metrics(test["suppressed"], predictions)
+        rows.append(
+            {
+                "ratio": ratio,
+                "base_rate": float(labels.mean()),
+                **{metric: scores[metric] for metric in ("auroc", "brier", "ece")},
+            }
         )
-        rows.append(row)
-    _write_table(pd.DataFrame(rows), "label_sensitivity")
+    write_table(pd.DataFrame(rows), "label_sensitivity")
 
 
 def policy_sensitivity(test: pd.DataFrame, p_unw: np.ndarray) -> list:
-    """RAM and safety across shift-window choices."""
+    """Compare the time-shift scenario and safety checks across shift windows."""
     rows = []
     for window in (2, 3, 4):
-        reco = ram.recommend(test.assign(risk=p_unw), window=window)
-        stats = ram.ram_table(reco)
+        recommendations = ram.recommend(test.assign(risk=p_unw), window=window)
+        stats = ram.ram_table(recommendations)
         rows.append(
             {
                 "shift_window_h": window,
                 "ram_pct_of_lost": round(stats["ram_pct_of_lost"], 3),
                 "share_shifted": round(stats["share_shifted"], 3),
-                "all_safe": safety.audit(reco)["all_safe"],
+                "all_safe": safety.audit(recommendations)["all_safe"],
             }
         )
-    _write_table(pd.DataFrame(rows), "sensitivity_policy")
+    write_table(pd.DataFrame(rows), "sensitivity_policy")
     return rows
 
 
 def smoke_sensitivity(work: pd.DataFrame) -> list:
     """Episode effect across AQI thresholds."""
     rows = []
-    for thresh in (80, 100, 120):
-        e = airquality.smoke_episodes(work, aqi_thresh=thresh)
+    for threshold in (80, 100, 120):
+        episode = airquality.smoke_episodes(work, aqi_thresh=threshold)
         rows.append(
             {
-                k: e[k]
-                for k in [
+                metric: episode[metric]
+                for metric in [
                     "aqi_threshold",
                     "polluted_days",
                     "ride_ratio_vs_clean",
@@ -425,42 +446,47 @@ def smoke_sensitivity(work: pd.DataFrame) -> list:
                 ]
             }
         )
-    _write_table(pd.DataFrame(rows), "sensitivity_smoke")
+    write_table(pd.DataFrame(rows), "sensitivity_smoke")
     return rows
 
 
 def floor_sensitivity(panel: pd.DataFrame) -> list:
-    """Discrimination across the activity-floor choice."""
+    """Compare holdout metrics across minimum expected ride counts."""
     rows = []
     for floor in (10, 20, 30):
-        sub = panel[panel["expected_rides"] >= floor].copy()
+        active_hours = panel[panel["expected_rides"] >= floor].copy()
         _, suppressed = suppression_mask(
-            sub["rides_total"].to_numpy(), sub["expected_rides"].to_numpy(), floor=floor
+            active_hours["rides_total"].to_numpy(),
+            active_hours["expected_rides"].to_numpy(),
+            floor=floor,
         )
-        sub["suppressed"] = suppressed.astype(int)
-        tr, te = temporal_split(sub)
-        m = metrics(te["suppressed"], predict(fit_logistic(tr, balanced=False), te))
+        active_hours["suppressed"] = suppressed.astype(int)
+        train, test = temporal_split(active_hours)
+        scores = metrics(
+            test["suppressed"], predict(fit_logistic(train, balanced=False), test)
+        )
         rows.append(
             {
                 "floor": floor,
-                "active_hours": len(sub),
-                "base_rate": round(m["base_rate"], 3),
-                "auroc": round(m["auroc"], 3),
-                "ece": round(m["ece"], 3),
+                "active_hours": len(active_hours),
+                "base_rate": round(scores["base_rate"], 3),
+                "auroc": round(scores["auroc"], 3),
+                "ece": round(scores["ece"], 3),
             }
         )
-    _write_table(pd.DataFrame(rows), "sensitivity_floor")
+    write_table(pd.DataFrame(rows), "sensitivity_floor")
     return rows
 
 
 def main() -> None:
-    """Run the full analysis (~2-4 min: GBM fit + day-clustered bootstraps dominate)."""
+    """Write model evaluations, scenario estimates, figures, and a JSON summary."""
     total = 18
-    done = [0]
+    completed_steps = 0
 
-    def step(label):
-        done[0] += 1
-        print(f"[{done[0]:2d}/{total}] {label}", file=sys.stderr, flush=True)
+    def step(label: str) -> None:
+        nonlocal completed_steps
+        completed_steps += 1
+        print(f"[{completed_steps:2d}/{total}] {label}", file=sys.stderr, flush=True)
 
     step("load panel")
     panel = load_panel()
@@ -500,7 +526,7 @@ def main() -> None:
     step("floor sensitivity")
     floor_sens = floor_sensitivity(panel)
 
-    step("write summary.json")
+    step("write summary and visual report")
     summary = {
         "provenance": artifact_provenance(),
         "interpretation": {
@@ -536,6 +562,7 @@ def main() -> None:
     (config.TABLES / "summary.json").write_text(
         json.dumps(summary, indent=2, allow_nan=False) + "\n"
     )
+    report.write_report(summary)
     print("model_comparison:", json.dumps(summary["model_comparison"]))
     print(
         "RAM:",

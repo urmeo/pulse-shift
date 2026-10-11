@@ -8,9 +8,10 @@ ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / "data" / "raw"
 INTERIM = ROOT / "data" / "interim"
 PROCESSED = ROOT / "data" / "processed"
-OUTPUTS = ROOT.parent / "outputs"
-FIGURES = OUTPUTS / "figures"
-TABLES = OUTPUTS / "tables"
+APP = ROOT.parent / "app"
+RESULTS = ROOT.parent / "results"
+FIGURES = RESULTS / "figures"
+TABLES = RESULTS / "tables"
 
 
 BIKESHARE_URL = (
