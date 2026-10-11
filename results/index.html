@@ -30,32 +30,50 @@
 
     <section aria-labelledby="pipeline-title">
       <h2 id="pipeline-title">One dataset, two paths</h2>
-      <a href="figures/pipeline.svg"><img class="pipeline" src="figures/pipeline.svg" alt="Public rides, weather and AQI form an hourly panel. Training on 2022–2023 and testing on 2024 produces evaluation charts. A separate all-years refit supplies the browser model."></a>
+      <a href="figures/pipeline.svg">
+        <img class="pipeline" src="figures/pipeline.svg" alt="Public rides, weather and AQI form an hourly panel. Training on 2022–2023 and testing on 2024 produces evaluation charts. A separate all-years refit supplies the browser model.">
+      </a>
     </section>
 
     <section aria-labelledby="evaluation-title">
       <h2 id="evaluation-title">Model evaluation</h2>
       <p>These charts use the historical 2024 test set. Open any chart to view it at full size.</p>
       <figure>
-        <a href="figures/model_comparison.png"><img src="figures/model_comparison.png" alt="Five models compared by AUROC, average precision and Brier score on the 2024 test set" loading="lazy"></a>
+        <a href="figures/model_comparison.png">
+          <img src="figures/model_comparison.png" alt="Five models compared by AUROC, average precision and Brier score on the 2024 test set" loading="lazy">
+        </a>
         <figcaption>Model comparison. Higher AUROC and average precision are better; a lower Brier score is better.</figcaption>
       </figure>
       <figure>
-        <a href="figures/roc.png"><img src="figures/roc.png" alt="ROC curves for climatology, balanced logistic and unweighted logistic on the 2024 test set" loading="lazy"></a>
+        <a href="figures/roc.png">
+          <img src="figures/roc.png" alt="ROC curves for climatology, balanced logistic and unweighted logistic on the 2024 test set" loading="lazy">
+        </a>
         <figcaption>ROC curves compare true-positive and false-positive rates across thresholds.</figcaption>
       </figure>
       <figure>
-        <a href="figures/precision_recall.png"><img src="figures/precision_recall.png" alt="Precision–recall curves for five models, with the observed event rate as a reference" loading="lazy"></a>
+        <a href="figures/precision_recall.png">
+          <img src="figures/precision_recall.png" alt="Precision–recall curves for five models, with the observed event rate as a reference" loading="lazy">
+        </a>
         <figcaption>Precision–recall curves show how many flagged hours have low demand as recall increases.</figcaption>
       </figure>
       <figure>
-        <a href="figures/reliability.png"><img src="figures/reliability.png" alt="Predicted probabilities compared with observed low-demand rates for the two logistic variants" loading="lazy"></a>
+        <a href="figures/reliability.png">
+          <img src="figures/reliability.png" alt="Predicted probabilities compared with observed low-demand rates for the two logistic variants" loading="lazy">
+        </a>
         <figcaption>Calibration. The unweighted model predicted 6.88% low demand on average; the observed rate was 2.46%. It overestimates the event rate.</figcaption>
       </figure>
       <div class="table-scroll" tabindex="0" role="region" aria-label="Model comparison table">
         <table>
           <caption>2024 test results · <a href="tables/model_comparison.csv">Download CSV</a></caption>
-          <thead><tr><th scope="col">Model</th><th scope="col">AUROC</th><th scope="col">Average precision</th><th scope="col">Brier</th><th scope="col">ECE</th></tr></thead>
+          <thead>
+            <tr>
+              <th scope="col">Model</th>
+              <th scope="col">AUROC</th>
+              <th scope="col">Average precision</th>
+              <th scope="col">Brier</th>
+              <th scope="col">ECE</th>
+            </tr>
+          </thead>
           <tbody><tr><th scope='row'>Climatology</th><td>0.692</td><td>0.046</td><td>0.027</td><td>0.053</td></tr>
 <tr><th scope='row'>Logistic (unweighted)</th><td>0.936</td><td>0.488</td><td>0.021</td><td>0.044</td></tr>
 <tr><th scope='row'>Logistic (balanced)</th><td>0.940</td><td>0.448</td><td>0.128</td><td>0.253</td></tr>
@@ -69,7 +87,9 @@
       <h2 id="scenario-title">Time-shift scenario</h2>
       <p>A shift of up to three hours produced a predicted recovery of <strong>36.8%</strong> of modeled lost rides (95% interval 33.0%–40.9%). This assumes full transfer to the chosen hours. At an assumed 50% transfer efficiency, recovery is <strong>18.4%</strong>.</p>
       <figure>
-        <a href="figures/ram_by_month.png"><img src="figures/ram_by_month.png" alt="Ride-weighted predicted-risk reduction by month under the time-shift scenario" loading="lazy"></a>
+        <a href="figures/ram_by_month.png">
+          <img src="figures/ram_by_month.png" alt="Ride-weighted predicted-risk reduction by month under the time-shift scenario" loading="lazy">
+        </a>
         <figcaption>Simulated recovery, not observed ride recovery. Candidate target hours must have heat index below 103°F and AQI below 150.</figcaption>
       </figure>
     </section>
