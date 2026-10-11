@@ -3,13 +3,15 @@
 from pulseshift import panel
 
 
-def main():
-    df = panel.build_panel(write=True)
-    active = df["active_hour"].sum()
+def main() -> None:
+    hourly_panel = panel.build_panel(write=True)
+    active_hours = int(hourly_panel["active_hour"].sum())
+    suppressed_hours = int(hourly_panel["suppressed"].sum())
     print(
-        f"panel rows: {len(df)}  active hours: {active}  suppressed: {int(df['suppressed'].sum())}"
+        f"panel rows: {len(hourly_panel)}  active hours: {active_hours}  suppressed: {suppressed_hours}"
     )
-    print(f"span: {df['ts_local'].min()} -> {df['ts_local'].max()}")
+    timestamps = hourly_panel["ts_local"]
+    print(f"span: {timestamps.min()} -> {timestamps.max()}")
 
 
 if __name__ == "__main__":

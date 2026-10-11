@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self'; base-uri 'none'">
+  <meta name="description" content="PulseShift research charts: DC bike-share demand, model evaluation and time-shift scenarios.">
+  <title>PulseShift · Charts and results</title>
+  <link rel="stylesheet" href="../app/report.css">
+</head>
+<body>
+  <main>
+    <nav aria-label="Main navigation">
+      <a href="../">PulseShift app</a>
+      <a href="https://github.com/urmeo/pulse-shift">Source code</a>
+    </nav>
+    <header>
+      <p class="eyebrow">DC-area bike-share demand · 2022–2024</p>
+      <h1>Charts and results</h1>
+      <p>Weather, air quality and the chance that hourly rides fall below half their expected count.</p>
+    </header>
+
+    <section class="metrics" aria-label="Unweighted logistic model, 2024 test results">
+      <div><strong>$auroc</strong><span>AUROC</span></div>
+      <div><strong>$average_precision</strong><span>Average precision</span></div>
+      <div><strong>$brier</strong><span>Brier score</span></div>
+      <div><strong>$active_hours</strong><span>Active hours in the panel</span></div>
+    </section>
+    <p class="note">Test scores use $train_hours training hours from 2022–2023 and $test_hours test hours from 2024. The app uses a separate refit on all three years.</p>
+
+    <section aria-labelledby="pipeline-title">
+      <h2 id="pipeline-title">One dataset, two paths</h2>
+      <a href="figures/pipeline.svg">
+        <img class="pipeline" src="figures/pipeline.svg" alt="Public rides, weather and AQI form an hourly panel. Training on 2022–2023 and testing on 2024 produces evaluation charts. A separate all-years refit supplies the browser model.">
+      </a>
+    </section>
+
+    <section aria-labelledby="evaluation-title">
+      <h2 id="evaluation-title">Model evaluation</h2>
+      <p>These charts use the historical 2024 test set. Open any chart to view it at full size.</p>
+      <figure>
+        <a href="figures/model_comparison.png">
+          <img src="figures/model_comparison.png" alt="Five models compared by AUROC, average precision and Brier score on the 2024 test set" loading="lazy">
+        </a>
+        <figcaption>Model comparison. Higher AUROC and average precision are better; a lower Brier score is better.</figcaption>
+      </figure>
+      <figure>
+        <a href="figures/roc.png">
+          <img src="figures/roc.png" alt="ROC curves for climatology, balanced logistic and unweighted logistic on the 2024 test set" loading="lazy">
+        </a>
+        <figcaption>ROC curves compare true-positive and false-positive rates across thresholds.</figcaption>
+      </figure>
+      <figure>
+        <a href="figures/precision_recall.png">
+          <img src="figures/precision_recall.png" alt="Precision–recall curves for five models, with the observed event rate as a reference" loading="lazy">
+        </a>
+        <figcaption>Precision–recall curves show how many flagged hours have low demand as recall increases.</figcaption>
+      </figure>
+      <figure>
+        <a href="figures/reliability.png">
+          <img src="figures/reliability.png" alt="Predicted probabilities compared with observed low-demand rates for the two logistic variants" loading="lazy">
+        </a>
+        <figcaption>Calibration. The unweighted model predicted $mean_prediction low demand on average; the observed rate was $observed_rate. It overestimates the event rate.</figcaption>
+      </figure>
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Model comparison table">
+        <table>
+          <caption>2024 test results · <a href="tables/model_comparison.csv">Download CSV</a></caption>
+          <thead>
+            <tr>
+              <th scope="col">Model</th>
+              <th scope="col">AUROC</th>
+              <th scope="col">Average precision</th>
+              <th scope="col">Brier</th>
+              <th scope="col">ECE</th>
+            </tr>
+          </thead>
+          <tbody>$model_rows</tbody>
+        </table>
+      </div>
+    </section>
+
+    <section aria-labelledby="scenario-title">
+      <h2 id="scenario-title">Time-shift scenario</h2>
+      <p>A shift of up to three hours produced a predicted recovery of <strong>$recovery</strong> of modeled lost rides (95% interval $recovery_low–$recovery_high). This assumes full transfer to the chosen hours. At an assumed 50% transfer efficiency, recovery is <strong>$discounted_recovery</strong>.</p>
+      <figure>
+        <a href="figures/ram_by_month.png">
+          <img src="figures/ram_by_month.png" alt="Ride-weighted predicted-risk reduction by month under the time-shift scenario" loading="lazy">
+        </a>
+        <figcaption>Simulated recovery, not observed ride recovery. Candidate target hours must have heat index below 103°F and AQI below 150.</figcaption>
+      </figure>
+    </section>
+
+    <section aria-labelledby="more-title">
+      <h2 id="more-title">More charts and data</h2>
+      <div class="links">
+        <a href="figures/decision_curve.png">Decision curve</a>
+        <a href="figures/exposure_response.png">Exposure curves</a>
+        <a href="figures/aqi_identification.png">AQI associations</a>
+        <a href="figures/smoke_event.png">June 2023 smoke event</a>
+        <a href="README.md">Data, method and limitations</a>
+        <a href="tables/summary.json">Summary and provenance</a>
+      </div>
+      <p class="note">This is an aggregate demand model. Individual activity and health outcomes were not measured. Coarse AQI data, daily fallback and observational confounding limit interpretation. Live forecasts have not been prospectively evaluated.</p>
+    </section>
+    <footer>Author and sole contributor: <a href="https://github.com/urmeo">urmeo</a> · <a href="../LICENSE">MIT license</a></footer>
+  </main>
+</body>
+</html>

@@ -1,18 +1,16 @@
-"""City-specific replication with a season-blocked day holdout (UCI #560)."""
+"""Refit the model on Seoul data with a season-blocked day holdout (UCI #560)."""
 
 import json
 import zipfile
 
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
 
 from pulseshift import config
 from pulseshift.evaluation import metrics
 from pulseshift.features import heat_index_f
 from pulseshift.ingest import _download
+from pulseshift.models import fit_logistic, predict
 from pulseshift.panel import suppression_mask
 from pulseshift.provenance import artifact_provenance, file_sha256
 from pulseshift.tables import write_table
@@ -32,22 +30,25 @@ FEATURES = [
 ]
 
 
-def _load():
+def load_seoul() -> pd.DataFrame:
     path = config.RAW / "seoul.zip"
     _download(URL, path)
-    with zipfile.ZipFile(path) as z:
-        names = [n for n in z.namelist() if n.lower().endswith(".csv")]
-        if not names:
+    with zipfile.ZipFile(path) as archive:
+        csv_names = [
+            name for name in archive.namelist() if name.lower().endswith(".csv")
+        ]
+        if not csv_names:
             raise RuntimeError(f"no CSV in Seoul archive from {URL}")
-        return pd.read_csv(z.open(names[0]), encoding="latin-1")
+        with archive.open(csv_names[0]) as source:
+            return pd.read_csv(source, encoding="latin-1")
 
 
 def prepare(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
-    rename = {}
-    for c in df.columns:
-        cl = c.strip().lower()
-        for key, std in [
+    column_names = {}
+    for column in df.columns:
+        normalized_name = column.strip().lower()
+        for prefix, standard_name in [
             ("rented", "rides"),
             ("temperature", "temp_c"),
             ("humidity", "humidity"),
@@ -57,13 +58,11 @@ def prepare(df: pd.DataFrame) -> pd.DataFrame:
             ("seasons", "season"),
             ("functioning", "functioning"),
         ]:
-            if cl.startswith(key):
-                rename[c] = std
-        if cl == "hour":
-            rename[c] = "hour"
-        if cl == "date":
-            rename[c] = "date"
-    df = df.rename(columns=rename)
+            if normalized_name.startswith(prefix):
+                column_names[column] = standard_name
+        if normalized_name in {"hour", "date"}:
+            column_names[column] = normalized_name
+    df = df.rename(columns=column_names)
     df = df[df["functioning"] == "Yes"].copy()
 
     df["date"] = pd.to_datetime(df["date"], dayfirst=True)
@@ -92,10 +91,10 @@ def season_day_split(df: pd.DataFrame, train_fraction: float = 0.75) -> pd.DataF
     train_days = []
     for _, season in df.groupby("season"):
         days = sorted(season["date"].unique())
-        cut = int(len(days) * train_fraction)
-        if cut < 1 or cut == len(days):
+        train_count = int(len(days) * train_fraction)
+        if train_count < 1 or train_count == len(days):
             raise ValueError("each season requires training and test dates")
-        train_days.extend(days[:cut])
+        train_days.extend(days[:train_count])
     return (
         df.sort_values(["date", "hour"])
         .assign(is_train=lambda frame: frame["date"].isin(train_days))
@@ -105,8 +104,10 @@ def season_day_split(df: pd.DataFrame, train_fraction: float = 0.75) -> pd.DataF
 
 def label_panel(df: pd.DataFrame) -> pd.DataFrame:
     df = season_day_split(df)
-    shape = df[df["is_train"]].groupby(["season", "daytype", "hour"])["rides"].median()
-    df["expected"] = shape.reindex(
+    expected_by_hour = (
+        df[df["is_train"]].groupby(["season", "daytype", "hour"])["rides"].median()
+    )
+    df["expected"] = expected_by_hour.reindex(
         pd.MultiIndex.from_frame(df[["season", "daytype", "hour"]])
     ).to_numpy()
     df = df.dropna(subset=["expected"])
@@ -116,40 +117,39 @@ def label_panel(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def main():
-    df = label_panel(prepare(_load()))
-    tr, te = df[df["is_train"]], df[~df["is_train"]]
-    model = Pipeline(
-        [("scale", StandardScaler()), ("clf", LogisticRegression(max_iter=2000))]
-    )
-    model.fit(tr[FEATURES], tr["suppressed"])
-    p = model.predict_proba(te[FEATURES])[:, 1]
-    m = metrics(te["suppressed"], p)
-    if set(tr["date"]).intersection(te["date"]):
+def main() -> None:
+    df = label_panel(prepare(load_seoul()))
+    train, test = df[df["is_train"]], df[~df["is_train"]]
+    model = fit_logistic(train, balanced=False, features=FEATURES)
+    probabilities = predict(model, test, features=FEATURES)
+    results = metrics(test["suppressed"], probabilities)
+    if set(train["date"]).intersection(test["date"]):
         raise RuntimeError("Seoul train and test dates overlap")
 
-    row = pd.DataFrame(
+    validation = pd.DataFrame(
         [
             {
                 "city": "Seoul",
                 "protocol": "city-specific refit; latest 25% of days within each season",
-                "n_train": len(tr),
-                "n_test": m["n"],
-                "train_days": tr["date"].nunique(),
-                "test_days": te["date"].nunique(),
-                "base_rate": m["base_rate"],
-                "auroc": m["auroc"],
-                "auprc": m["auprc"],
-                "brier": m["brier"],
-                "ece": m["ece"],
-                "cal_slope": m["cal_slope"],
-                "cal_intercept": m["cal_intercept"],
+                "n_train": len(train),
+                "n_test": results["n"],
+                "train_days": train["date"].nunique(),
+                "test_days": test["date"].nunique(),
+                "base_rate": results["base_rate"],
+                "auroc": results["auroc"],
+                "auprc": results["auprc"],
+                "brier": results["brier"],
+                "ece": results["ece"],
+                "cal_slope": results["cal_slope"],
+                "cal_intercept": results["cal_intercept"],
             }
         ]
     )
-    write_table(row, "seoul_validation")
+    write_table(validation, "seoul_validation")
     write_table(
-        te[["date", "hour", "season", "expected", "suppressed"]].assign(probability=p),
+        test[["date", "hour", "season", "expected", "suppressed"]].assign(
+            probability=probabilities
+        ),
         "seoul_predictions",
     )
     provenance = artifact_provenance()
@@ -159,14 +159,14 @@ def main():
         "split": "earliest 75% / latest 25% unique functioning dates within each season",
         "chronology": "ordered within seasons; not a global chronological forecast holdout",
         "features": FEATURES,
-        "train_dates": sorted(tr["date"].dt.strftime("%Y-%m-%d").unique().tolist()),
-        "test_dates": sorted(te["date"].dt.strftime("%Y-%m-%d").unique().tolist()),
+        "train_dates": sorted(train["date"].dt.strftime("%Y-%m-%d").unique().tolist()),
+        "test_dates": sorted(test["date"].dt.strftime("%Y-%m-%d").unique().tolist()),
         "dc_coefficients_transferred": False,
     }
     (config.TABLES / "seoul_provenance.json").write_text(
-        json.dumps(provenance, indent=2, allow_nan=False) + "\n"
+        json.dumps(provenance, indent=2, allow_nan=False) + "\n", encoding="utf-8"
     )
-    print(row.to_string(index=False))
+    print(validation.to_string(index=False))
 
 
 if __name__ == "__main__":

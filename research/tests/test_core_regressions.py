@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from pulseshift import config, ingest, panel, ram, safety
+from pulseshift import __version__, config, ingest, panel, ram, safety
 from pulseshift.features import heat_index_f
 
 
@@ -256,11 +256,8 @@ def test_panel_rejects_duplicate_weather_rows(monkeypatch):
 
 
 def test_export_and_citation_use_current_version():
-    import json
-    from pulseshift import __version__, config
-
     root = config.ROOT.parent
-    exported = (root / "model.js").read_text()
+    exported = (config.APP / "model.js").read_text()
     artifact = json.loads(exported.split("=", 1)[1].strip().removesuffix(";"))
     assert artifact["meta"]["model_version"] == __version__
     assert f"version: {__version__}\n" in (root / "CITATION.cff").read_text()

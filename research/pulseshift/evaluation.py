@@ -14,22 +14,30 @@ from sklearn.metrics import (
 )
 
 
-def _logit(p: np.ndarray) -> np.ndarray:
-    p = np.clip(p, 1e-6, 1 - 1e-6)
-    return np.log(p / (1 - p))
+def _logit(probabilities: np.ndarray) -> np.ndarray:
+    probabilities = np.clip(probabilities, 1e-6, 1 - 1e-6)
+    return np.log(probabilities / (1 - probabilities))
 
 
 def binary_predictions(y_true, y_prob) -> tuple[np.ndarray, np.ndarray]:
     """Validate paired binary labels and probabilities."""
-    y = np.asarray(y_true)
-    p = np.asarray(y_prob, dtype=float)
-    if y.ndim != 1 or p.ndim != 1 or len(y) != len(p) or len(y) == 0:
+    labels = np.asarray(y_true)
+    probabilities = np.asarray(y_prob, dtype=float)
+    if (
+        labels.ndim != 1
+        or probabilities.ndim != 1
+        or len(labels) != len(probabilities)
+        or len(labels) == 0
+    ):
         raise ValueError("labels and probabilities must be nonempty paired vectors")
-    if not np.isin(y, [0, 1]).all():
+    if not np.isin(labels, [0, 1]).all():
         raise ValueError("labels must be binary")
-    if not np.isfinite(p).all() or not ((p >= 0) & (p <= 1)).all():
+    if (
+        not np.isfinite(probabilities).all()
+        or not ((probabilities >= 0) & (probabilities <= 1)).all()
+    ):
         raise ValueError("probabilities must be finite and between 0 and 1")
-    return y, p
+    return labels, probabilities
 
 
 def calibration_fit(y_true, y_prob) -> tuple[float, float]:
@@ -46,14 +54,14 @@ def expected_calibration_error(y_true, y_prob, n_bins: int = 10) -> float:
     y_true, y_prob = binary_predictions(y_true, y_prob)
     if not isinstance(n_bins, (int, np.integer)) or n_bins < 1:
         raise ValueError("n_bins must be a positive integer")
-    bins = np.linspace(0, 1, n_bins + 1)
-    idx = np.digitize(y_prob, bins[1:-1])
-    ece = 0.0
-    for b in range(n_bins):
-        mask = idx == b
+    bin_edges = np.linspace(0, 1, n_bins + 1)
+    bin_indices = np.digitize(y_prob, bin_edges[1:-1])
+    error = 0.0
+    for bin_number in range(n_bins):
+        mask = bin_indices == bin_number
         if mask.any():
-            ece += mask.mean() * abs(y_true[mask].mean() - y_prob[mask].mean())
-    return float(ece)
+            error += mask.mean() * abs(y_true[mask].mean() - y_prob[mask].mean())
+    return float(error)
 
 
 def bootstrap_ci(
@@ -73,33 +81,34 @@ def bootstrap_ci(
     if require_two_classes and len(np.unique(y_true)) < 2:
         raise ValueError("bootstrap metric requires both label classes")
     rng = np.random.default_rng(seed)
+    group_members = None
     if groups is not None:
-        groups = np.asarray(groups)
-        if groups.ndim != 1 or len(groups) != len(y_true):
+        group_ids = np.asarray(groups)
+        if group_ids.ndim != 1 or len(group_ids) != len(y_true):
             raise ValueError("bootstrap groups must align with labels")
-        members = [np.where(groups == g)[0] for g in np.unique(groups)]
-        if any(len(s) == 0 for s in members):
+        group_members = [
+            np.flatnonzero(group_ids == group) for group in np.unique(group_ids)
+        ]
+        if any(len(members) == 0 for members in group_members):
             raise ValueError("bootstrap groups must not contain missing values")
 
-    def draw():
-        if groups is None:
-            return rng.choice(len(y_true), size=len(y_true), replace=True)
-        picked = rng.integers(0, len(members), len(members))
-        return np.concatenate([members[i] for i in picked])
-
-    vals = []
+    values = []
     for _ in range(n):
-        s = draw()
-        if require_two_classes and len(np.unique(y_true[s])) < 2:
+        if group_members is None:
+            sample = rng.choice(len(y_true), size=len(y_true), replace=True)
+        else:
+            sampled_groups = rng.integers(0, len(group_members), len(group_members))
+            sample = np.concatenate([group_members[group] for group in sampled_groups])
+        if require_two_classes and len(np.unique(y_true[sample])) < 2:
             continue
-        value = float(fn(y_true[s], y_prob[s]))
+        value = float(fn(y_true[sample], y_prob[sample]))
         if not np.isfinite(value):
             raise ValueError("bootstrap metric returned a nonfinite value")
-        vals.append(value)
-    if not vals:
+        values.append(value)
+    if not values:
         raise ValueError("no valid bootstrap samples; increase n")
-    lo, hi = np.percentile(vals, [100 * alpha / 2, 100 * (1 - alpha / 2)])
-    return float(lo), float(hi)
+    lower, upper = np.percentile(values, [100 * alpha / 2, 100 * (1 - alpha / 2)])
+    return float(lower), float(upper)
 
 
 def metrics(y_true, y_prob) -> dict:

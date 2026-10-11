@@ -14,18 +14,21 @@ def strata_metrics(
     df: pd.DataFrame, group_col: str, risk_col: str = "risk"
 ) -> pd.DataFrame:
     rows = []
-    for name, g in df.groupby(group_col):
-        y = g["suppressed"].to_numpy()
-        p = g[risk_col].to_numpy()
-        auroc = roc_auc_score(y, p) if len(np.unique(y)) == 2 else np.nan
-        slope = calibration_fit(y, p)[0] if len(np.unique(y)) == 2 else np.nan
+    for name, group in df.groupby(group_col):
+        labels = group["suppressed"].to_numpy()
+        probabilities = group[risk_col].to_numpy()
+        has_both_classes = len(np.unique(labels)) == 2
+        auroc = roc_auc_score(labels, probabilities) if has_both_classes else np.nan
+        slope = (
+            calibration_fit(labels, probabilities)[0] if has_both_classes else np.nan
+        )
         rows.append(
             {
                 "group": name,
-                "n": len(g),
-                "base_rate": float(y.mean()),
+                "n": len(group),
+                "base_rate": float(labels.mean()),
                 "auroc": auroc,
-                "brier": brier_score_loss(y, p),
+                "brier": brier_score_loss(labels, probabilities),
                 "cal_slope": slope,
             }
         )

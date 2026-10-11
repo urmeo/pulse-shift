@@ -1,0 +1,73 @@
+# Results and methods
+
+[Open the visual report](https://urmeo.github.io/pulse-shift/results/) · [Return to the project](../README.md) · [Reproduce the results](../docs/development.md)
+
+The figures and tables in this directory come from the committed DC panel and the separate Seoul analysis. The report presents historical evaluation, observational associations and simulated policy outcomes. Browser coefficients are refit separately on all active DC hours.
+
+## Figures
+
+| Figure | What it shows | Source table |
+| --- | --- | --- |
+| [ROC curves](figures/roc.png) | True-positive and false-positive rates on the 2024 holdout | [Predictions](tables/holdout_predictions.csv) |
+| [Precision–recall curves](figures/precision_recall.png) | Precision and recall on the 2024 holdout | [Predictions](tables/holdout_predictions.csv) |
+| [Model comparison](figures/model_comparison.png) | AUROC, average precision and probability error across five models | [Model scores](tables/model_comparison.csv) |
+| [Calibration](figures/reliability.png) | Predicted probabilities compared with observed rates | [Predictions](tables/holdout_predictions.csv) |
+| [Decision curve](figures/decision_curve.png) | Modeled net benefit across decision thresholds | [Decision scores](tables/decision_curve.csv) |
+| [Monthly time-shift scenario](figures/ram_by_month.png) | Ride-weighted predicted-risk reduction from simulated shifts | [Policy predictions](tables/policy_predictions.csv) |
+| [Heat and AQI associations](figures/exposure_response.png) | Unadjusted low-demand rates by exposure level | [Exposure response](tables/exposure_response.csv) |
+| [Daily and hourly AQI associations](figures/aqi_identification.png) | Estimated ride-ratio changes with different exposures and controls | [AQI estimates](tables/aqi_identification.csv) |
+| [June 2023 smoke event](figures/smoke_event.png) | AQI and network rides during the DC wildfire-smoke episode | [Event summary](tables/smoke_event.csv) |
+
+## Data and target
+
+| Item | Value |
+| --- | --- |
+| DC panel | 26,288 network-hours, 2022–2024 |
+| Active hours | 24,354 hours with at least 20 expected rides |
+| Training split | 16,150 active hours, 2022–2023 |
+| Test split | 8,204 active hours, 2024 |
+| Missing calendar hours | 16 |
+| AQI coverage | 80.3% CAMS hourly values; EPA daily AQI for the remaining hours |
+
+The panel combines Capital Bikeshare rides, NOAA weather from Reagan National Airport (DCA), and AQI. An hour has low demand when rides fall below **50% of expected rides**. Expected rides use the 2022–2023 median for each season, weekday/weekend group and hour, adjusted by training-year ride volume. The 2024 target uses the 2023 volume adjustment.
+
+The browser model is refit on all 24,354 active hours after evaluation. Its coefficients are separate from the historical holdout models reported below.
+
+## Historical evaluation
+
+| Model | AUROC ↑ | Average precision ↑ | Brier score ↓ | Calibration error (ECE) ↓ |
+| --- | ---: | ---: | ---: | ---: |
+| Climatology | 0.692 | 0.046 | 0.027 | 0.053 |
+| Unweighted logistic | 0.936 | 0.488 | 0.021 | 0.044 |
+| Balanced logistic | 0.940 | 0.448 | 0.128 | 0.253 |
+| Balanced logistic + isotonic calibration | 0.940 | 0.466 | 0.029 | 0.064 |
+| Gradient boosting | 0.942 | 0.526 | 0.025 | 0.046 |
+
+Higher AUROC and average precision are better; lower Brier score and ECE are better. For the unweighted logistic model, 95% confidence intervals from resampling whole days are **0.900–0.967** for AUROC, **0.319–0.638** for average precision and **0.017–0.026** for Brier score. Its mean prediction was **6.88%**, while the observed low-demand rate was **2.46%**. Probabilities overestimate the 2024 event rate.
+
+Adding AQI after weather changed AUROC from **0.936475 to 0.936477**; average precision and Brier score became slightly worse. See the [full model comparison](tables/model_comparison.csv), [confidence intervals](tables/served_ci.csv) and [feature comparison](tables/ablation.csv).
+
+## Separate Seoul refit
+
+The [Seoul analysis](tables/seoul_validation.csv) reached AUROC **0.873**, average precision **0.694** and Brier score **0.064**. It used **6,305 training hours and 2,160 test hours**, holding out the latest 25% of dates within each season. This split keeps whole dates together. It is not a global chronological forecast test or a transfer of the DC coefficients.
+
+The [Seoul predictions](tables/seoul_predictions.csv) and [provenance metadata](tables/seoul_provenance.json) record the outputs, dataset hash and split conditions.
+
+## Simulated time shifts
+
+The simulated policy allowed shifts of up to three hours. It made **1,126 shifts and 9 cancellations**, with **0 violations of study thresholds**. Predicted recovery was **36.8% of modeled lost rides** (95% CI **33.0–40.9%**) under full transfer of demand to the chosen hours. Assuming 50% transfer efficiency reduces this to **18.4%**.
+
+These are scenario estimates, not observed ride recovery. The [monthly figure](figures/ram_by_month.png), [policy predictions](tables/policy_predictions.csv), [policy sensitivity](tables/sensitivity_policy.csv) and [summary metadata](tables/summary.json) provide the supporting outputs.
+
+## Limitations and operating conditions
+
+- The target is aggregate bike-share demand. Individual activity, health outcomes and the actual benefits of shifting rides were not measured. Live forecast errors have not been prospectively evaluated.
+- CAMS exposure data are coarse: about 45 km and three-hourly at source, returned as hourly API values. Daily AQI fallback, missing hours, changes over time and observational confounding limit interpretation. Different daily and hourly AQI associations do not establish causality or isolate measurement error.
+- Forecast comparisons use hours from **06:00 to 21:00 DC time** in the next 24 hours. Hours with missing inputs, heat index **≥103°F** or AQI **≥150** are excluded. These are study thresholds; follow official advisories.
+- The analysis uses public aggregate data under each provider's terms. The [MIT license](../LICENSE) covers this repository's code.
+
+The [summary metadata](tables/summary.json) record source hashes, runtime versions and the panel checksum. All generated figures are in [figures/](figures/), and predictions, sensitivity analyses and metadata are in [tables/](tables/).
+
+[View the browser app](figures/pulseshift-ui.jpg).
+
+Method references: [calibration](https://doi.org/10.1186/s12916-019-1466-7), [precision–recall evaluation](https://doi.org/10.1371/journal.pone.0118432), [decision curves](https://doi.org/10.1177/0272989X06295361), and the [Seoul Bike Sharing Demand dataset](https://doi.org/10.24432/C5F62R).

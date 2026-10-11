@@ -18,14 +18,16 @@ def net_benefit(y_true, y_prob, thresholds) -> tuple[np.ndarray, np.ndarray]:
         raise ValueError(
             "decision thresholds must be finite and strictly between 0 and 1"
         )
-    n = len(y_true)
+    sample_count = len(y_true)
     prevalence = y_true.mean()
     model, treat_all = [], []
-    for pt in thresholds:
-        flag = y_prob >= pt
-        tp = np.sum(flag & (y_true == 1))
-        fp = np.sum(flag & (y_true == 0))
-        weight = pt / (1 - pt)
-        model.append(tp / n - fp / n * weight)
+    for threshold in thresholds:
+        predicted_positive = y_prob >= threshold
+        true_positives = np.sum(predicted_positive & (y_true == 1))
+        false_positives = np.sum(predicted_positive & (y_true == 0))
+        weight = threshold / (1 - threshold)
+        model.append(
+            true_positives / sample_count - false_positives / sample_count * weight
+        )
         treat_all.append(prevalence - (1 - prevalence) * weight)
     return np.array(model), np.array(treat_all)

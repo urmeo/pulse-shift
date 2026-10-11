@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import gzip
 import io
 from pathlib import Path
@@ -12,22 +11,30 @@ import pandas as pd
 
 from . import config, ingest
 from .features import MODEL_FEATURES, add_temporal, heat_index_f
+from .provenance import file_sha256
 
 
 def expected_rides(df: pd.DataFrame, value: str = "rides_total") -> np.ndarray:
-    """Train-fit shape and volume level; test years carry the last train year (leak-free)."""
+    """Fit hourly medians and annual volume levels on the training years.
+
+    Years outside training use the last training year's volume level.
+    """
     keys = ["season", "daytype", "hour"]
-    train = df[df["year"].isin(config.TRAIN_YEARS)]
-    shape = (
-        train.groupby(keys)[value]
+    training = df[df["year"].isin(config.TRAIN_YEARS)]
+    hourly_medians = (
+        training.groupby(keys)[value]
         .median()
         .reindex(pd.MultiIndex.from_frame(df[keys]))
         .to_numpy()
     )
-    year_level = train.groupby("year")[value].mean() / train[value].mean()
-    last_train = year_level.loc[max(config.TRAIN_YEARS)]
-    level = df["year"].map(lambda y: year_level.get(y, last_train)).to_numpy()
-    return shape * level
+    year_levels = training.groupby("year")[value].mean() / training[value].mean()
+    last_training_level = year_levels.loc[max(config.TRAIN_YEARS)]
+    volume_levels = (
+        df["year"]
+        .map(lambda year: year_levels.get(year, last_training_level))
+        .to_numpy()
+    )
+    return hourly_medians * volume_levels
 
 
 def suppression_mask(
@@ -36,7 +43,7 @@ def suppression_mask(
     ratio: float = config.SUPPRESSION_RATIO,
     floor: float = config.EXPECTED_FLOOR,
 ) -> tuple[np.ndarray | pd.Series, np.ndarray | pd.Series]:
-    """Active and suppressed boolean masks; the one rule every call site shares."""
+    """Mark active hours and rides below the expected-volume threshold."""
     active = expected >= floor
     suppressed = (rides < ratio * expected) & active
     return active, suppressed
@@ -57,11 +64,9 @@ PANEL_PATH = config.PROCESSED / "panel.csv.gz"
 CHECKSUM_PATH = config.PROCESSED / "panel.sha256"
 
 
-def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
-def verify_checksum(path=PANEL_PATH, checksum_path=CHECKSUM_PATH) -> None:
+def verify_checksum(
+    path: Path = PANEL_PATH, checksum_path: Path = CHECKSUM_PATH
+) -> None:
     """Raise if the committed panel no longer matches its recorded hash."""
     if not checksum_path.exists():
         raise FileNotFoundError(f"panel checksum missing: {checksum_path}")
@@ -69,11 +74,11 @@ def verify_checksum(path=PANEL_PATH, checksum_path=CHECKSUM_PATH) -> None:
     if (
         not parts
         or len(parts[0]) != 64
-        or any(c not in "0123456789abcdef" for c in parts[0])
+        or any(character not in "0123456789abcdef" for character in parts[0])
     ):
         raise ValueError(f"invalid panel checksum: {checksum_path}")
     expected = parts[0]
-    actual = _sha256(path)
+    actual = file_sha256(path)
     if actual != expected:
         raise ValueError(f"panel checksum mismatch: {actual} != {expected}")
 
@@ -85,18 +90,20 @@ def write_panel(
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(path.name + ".part")
     try:
-        with temporary.open("wb") as stream:
-            with gzip.GzipFile(
+        with (
+            temporary.open("wb") as stream,
+            gzip.GzipFile(
                 filename="", mode="wb", fileobj=stream, mtime=0
-            ) as compressed:
-                with io.TextIOWrapper(compressed, encoding="utf-8", newline="") as text:
-                    df.to_csv(text, index=False)
+            ) as compressed,
+            io.TextIOWrapper(compressed, encoding="utf-8", newline="") as text,
+        ):
+            df.to_csv(text, index=False)
         temporary.replace(path)
     finally:
         temporary.unlink(missing_ok=True)
     checksum_path.parent.mkdir(parents=True, exist_ok=True)
     temporary_hash = checksum_path.with_name(checksum_path.name + ".part")
-    temporary_hash.write_text(f"{_sha256(path)}  {path.name}\n")
+    temporary_hash.write_text(f"{file_sha256(path)}  {path.name}\n")
     temporary_hash.replace(checksum_path)
 
 
@@ -113,8 +120,8 @@ def build_panel(write: bool = True) -> pd.DataFrame:
         .sort_values("ts_utc")
         .reset_index(drop=True)
     )
-    for col in ["temp_f", "humidity", "wind_mph", "visibility_mi"]:
-        panel[col] = panel[col].interpolate(limit=3).ffill(limit=3).bfill(limit=3)
+    for column in ["temp_f", "humidity", "wind_mph", "visibility_mi"]:
+        panel[column] = panel[column].interpolate(limit=3).ffill(limit=3).bfill(limit=3)
 
     panel["ts_local"] = (
         panel["ts_utc"]

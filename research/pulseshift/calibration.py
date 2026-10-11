@@ -24,7 +24,7 @@ def calibrate_cv(
 
 
 def reliability(y_true, y_prob, n_bins: int = 10) -> tuple[np.ndarray, np.ndarray]:
-    frac_pos, mean_pred = calibration_curve(
+    positive_fraction, mean_probability = calibration_curve(
         y_true, y_prob, n_bins=n_bins, strategy="quantile"
     )
-    return mean_pred, frac_pos
+    return mean_probability, positive_fraction
