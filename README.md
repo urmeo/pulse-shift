@@ -4,7 +4,7 @@
 
 **Weather, air quality and DC-area bike-share demand.**
 
-[Live demo](https://urmeo.github.io/PulseShift/) · [Results](outputs/tables/) · [Reproduce](CONTRIBUTING.md)
+[Live demo](https://urmeo.github.io/pulse-shift/) · [Results](outputs/tables/) · [Reproduce](CONTRIBUTING.md)
 
 </div>
 
