@@ -34,9 +34,11 @@ class ClimatologyBaseline:
         return self
 
     def predict_proba(self, df: pd.DataFrame) -> np.ndarray:
-        idx = list(zip(*[df[k] for k in self.keys]))
-        p = np.array([self.rates_.get(k, self.prior_) for k in idx])
-        return np.column_stack([1.0 - p, p])
+        groups = df[self.keys].itertuples(index=False, name=None)
+        probabilities = np.array(
+            [self.rates_.get(group, self.prior_) for group in groups]
+        )
+        return np.column_stack([1.0 - probabilities, probabilities])
 
 
 def build_logistic(balanced: bool = True) -> Pipeline:

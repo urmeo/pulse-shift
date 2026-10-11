@@ -20,17 +20,21 @@ def expected_rides(df: pd.DataFrame, value: str = "rides_total") -> np.ndarray:
     Years outside training use the last training year's volume level.
     """
     keys = ["season", "daytype", "hour"]
-    train = df[df["year"].isin(config.TRAIN_YEARS)]
-    shape = (
-        train.groupby(keys)[value]
+    training = df[df["year"].isin(config.TRAIN_YEARS)]
+    hourly_medians = (
+        training.groupby(keys)[value]
         .median()
         .reindex(pd.MultiIndex.from_frame(df[keys]))
         .to_numpy()
     )
-    year_level = train.groupby("year")[value].mean() / train[value].mean()
-    last_train = year_level.loc[max(config.TRAIN_YEARS)]
-    level = df["year"].map(lambda y: year_level.get(y, last_train)).to_numpy()
-    return shape * level
+    year_levels = training.groupby("year")[value].mean() / training[value].mean()
+    last_training_level = year_levels.loc[max(config.TRAIN_YEARS)]
+    volume_levels = (
+        df["year"]
+        .map(lambda year: year_levels.get(year, last_training_level))
+        .to_numpy()
+    )
+    return hourly_medians * volume_levels
 
 
 def suppression_mask(
@@ -60,7 +64,9 @@ PANEL_PATH = config.PROCESSED / "panel.csv.gz"
 CHECKSUM_PATH = config.PROCESSED / "panel.sha256"
 
 
-def verify_checksum(path=PANEL_PATH, checksum_path=CHECKSUM_PATH) -> None:
+def verify_checksum(
+    path: Path = PANEL_PATH, checksum_path: Path = CHECKSUM_PATH
+) -> None:
     """Raise if the committed panel no longer matches its recorded hash."""
     if not checksum_path.exists():
         raise FileNotFoundError(f"panel checksum missing: {checksum_path}")
@@ -68,7 +74,7 @@ def verify_checksum(path=PANEL_PATH, checksum_path=CHECKSUM_PATH) -> None:
     if (
         not parts
         or len(parts[0]) != 64
-        or any(c not in "0123456789abcdef" for c in parts[0])
+        or any(character not in "0123456789abcdef" for character in parts[0])
     ):
         raise ValueError(f"invalid panel checksum: {checksum_path}")
     expected = parts[0]
@@ -84,12 +90,14 @@ def write_panel(
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(path.name + ".part")
     try:
-        with temporary.open("wb") as stream:
-            with gzip.GzipFile(
+        with (
+            temporary.open("wb") as stream,
+            gzip.GzipFile(
                 filename="", mode="wb", fileobj=stream, mtime=0
-            ) as compressed:
-                with io.TextIOWrapper(compressed, encoding="utf-8", newline="") as text:
-                    df.to_csv(text, index=False)
+            ) as compressed,
+            io.TextIOWrapper(compressed, encoding="utf-8", newline="") as text,
+        ):
+            df.to_csv(text, index=False)
         temporary.replace(path)
     finally:
         temporary.unlink(missing_ok=True)
@@ -112,8 +120,8 @@ def build_panel(write: bool = True) -> pd.DataFrame:
         .sort_values("ts_utc")
         .reset_index(drop=True)
     )
-    for col in ["temp_f", "humidity", "wind_mph", "visibility_mi"]:
-        panel[col] = panel[col].interpolate(limit=3).ffill(limit=3).bfill(limit=3)
+    for column in ["temp_f", "humidity", "wind_mph", "visibility_mi"]:
+        panel[column] = panel[column].interpolate(limit=3).ffill(limit=3).bfill(limit=3)
 
     panel["ts_local"] = (
         panel["ts_utc"]

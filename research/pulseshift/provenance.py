@@ -17,49 +17,55 @@ def file_sha256(path: Path) -> str:
 
 
 def artifact_provenance(panel_path: Path | None = None) -> dict:
-    root = config.ROOT.parent
-    sources = sorted(
+    repository_root = config.ROOT.parent
+    source_files = sorted(
         [
             *config.ROOT.glob("pulseshift/*.py"),
             *config.ROOT.glob("scripts/*.py"),
             *config.ROOT.glob("templates/*.html"),
         ]
     )
-    hashes = {str(path.relative_to(root)): file_sha256(path) for path in sources}
-    digest = hashlib.sha256()
-    for name, sha in hashes.items():
-        digest.update(f"{name}\0{sha}\n".encode())
-    commit, dirty = None, None
+    source_hashes = {
+        str(path.relative_to(repository_root)): file_sha256(path)
+        for path in source_files
+    }
+    source_digest = hashlib.sha256()
+    for name, sha256 in source_hashes.items():
+        source_digest.update(f"{name}\0{sha256}\n".encode())
+    source_commit, source_dirty = None, None
     try:
-        commit = subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], cwd=root, text=True, stderr=subprocess.DEVNULL
+        source_commit = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"],
+            cwd=repository_root,
+            text=True,
+            stderr=subprocess.DEVNULL,
         ).strip()
         status = subprocess.check_output(
-            ["git", "status", "--porcelain", "--", *hashes],
-            cwd=root,
+            ["git", "status", "--porcelain", "--", *source_hashes],
+            cwd=repository_root,
             text=True,
             stderr=subprocess.DEVNULL,
         )
-        dirty = bool(status.strip())
+        source_dirty = bool(status.strip())
     except (FileNotFoundError, subprocess.CalledProcessError):
         pass
-    versions: dict[str, str | None] = {}
+    package_versions: dict[str, str | None] = {}
     for name in ("numpy", "pandas", "scipy", "scikit-learn", "matplotlib"):
         try:
-            versions[name] = importlib.metadata.version(name)
+            package_versions[name] = importlib.metadata.version(name)
         except importlib.metadata.PackageNotFoundError:
-            versions[name] = None
+            package_versions[name] = None
     panel_path = panel_path or config.PROCESSED / "panel.csv.gz"
     return {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "source_commit": commit,
-        "source_dirty": dirty,
-        "source_sha256": digest.hexdigest(),
-        "source_files_sha256": hashes,
+        "source_commit": source_commit,
+        "source_dirty": source_dirty,
+        "source_sha256": source_digest.hexdigest(),
+        "source_files_sha256": source_hashes,
         "panel_sha256": file_sha256(panel_path),
         "python": platform.python_version(),
         "platform": platform.platform(),
-        "packages": versions,
+        "packages": package_versions,
         "label": {
             "ratio": config.SUPPRESSION_RATIO,
             "expected_floor": config.EXPECTED_FLOOR,

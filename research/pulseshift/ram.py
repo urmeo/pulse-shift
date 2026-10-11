@@ -8,7 +8,7 @@ import pandas as pd
 from . import config
 
 
-def _safe(heat_index_f, aqi):
+def _safe_hours(heat_index_f, aqi):
     return (
         np.isfinite(heat_index_f)
         & np.isfinite(aqi)
@@ -37,7 +37,7 @@ def recommend(
     original_index = df.index
     df = df.reset_index(drop=True)
     df["day"] = df["ts_local"].dt.date
-    df["safe"] = _safe(df["heat_index_f"], df["aqi"])
+    df["safe"] = _safe_hours(df["heat_index_f"], df["aqi"])
 
     n = len(df)
     actions = np.empty(n, dtype=object)
@@ -98,16 +98,14 @@ def ram_table(reco: pd.DataFrame, risk_col: str = "risk") -> dict:
     """Summarize model-based recovered rides and minutes for the chosen shifts."""
     expected = reco["expected_rides"].to_numpy()
     original_risk = reco[risk_col].to_numpy()
-    no_adapt = expected * (1 - original_risk)
-    adapted = expected * (1 - reco["chosen_risk"].to_numpy())
-    recovered = np.maximum(0.0, adapted - no_adapt)
+    baseline_rides = expected * (1 - original_risk)
+    adapted_rides = expected * (1 - reco["chosen_risk"].to_numpy())
+    recovered = np.maximum(0.0, adapted_rides - baseline_rides)
 
     lost = float((expected * original_risk).sum())
     total = float(recovered.sum())
     shifts = reco[reco["action"] == "shift"]
-    distinct_slots = (
-        int(shifts.groupby(["day", "target_hour"]).ngroups) if len(shifts) else 0
-    )
+    distinct_slots = int(shifts.groupby(["day", "target_hour"]).ngroups)
     return {
         "recovered_rides": total,
         "recovered_minutes": total * config.MEAN_RIDE_MIN,

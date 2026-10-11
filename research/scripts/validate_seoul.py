@@ -30,20 +30,22 @@ FEATURES = [
 ]
 
 
-def _load():
+def load_seoul() -> pd.DataFrame:
     path = config.RAW / "seoul.zip"
     _download(URL, path)
     with zipfile.ZipFile(path) as archive:
-        names = [name for name in archive.namelist() if name.lower().endswith(".csv")]
-        if not names:
+        csv_names = [
+            name for name in archive.namelist() if name.lower().endswith(".csv")
+        ]
+        if not csv_names:
             raise RuntimeError(f"no CSV in Seoul archive from {URL}")
-        with archive.open(names[0]) as source:
+        with archive.open(csv_names[0]) as source:
             return pd.read_csv(source, encoding="latin-1")
 
 
 def prepare(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
-    rename = {}
+    column_names = {}
     for column in df.columns:
         normalized_name = column.strip().lower()
         for prefix, standard_name in [
@@ -57,10 +59,10 @@ def prepare(df: pd.DataFrame) -> pd.DataFrame:
             ("functioning", "functioning"),
         ]:
             if normalized_name.startswith(prefix):
-                rename[column] = standard_name
+                column_names[column] = standard_name
         if normalized_name in {"hour", "date"}:
-            rename[column] = normalized_name
-    df = df.rename(columns=rename)
+            column_names[column] = normalized_name
+    df = df.rename(columns=column_names)
     df = df[df["functioning"] == "Yes"].copy()
 
     df["date"] = pd.to_datetime(df["date"], dayfirst=True)
@@ -89,10 +91,10 @@ def season_day_split(df: pd.DataFrame, train_fraction: float = 0.75) -> pd.DataF
     train_days = []
     for _, season in df.groupby("season"):
         days = sorted(season["date"].unique())
-        cut = int(len(days) * train_fraction)
-        if cut < 1 or cut == len(days):
+        train_count = int(len(days) * train_fraction)
+        if train_count < 1 or train_count == len(days):
             raise ValueError("each season requires training and test dates")
-        train_days.extend(days[:cut])
+        train_days.extend(days[:train_count])
     return (
         df.sort_values(["date", "hour"])
         .assign(is_train=lambda frame: frame["date"].isin(train_days))
@@ -102,8 +104,10 @@ def season_day_split(df: pd.DataFrame, train_fraction: float = 0.75) -> pd.DataF
 
 def label_panel(df: pd.DataFrame) -> pd.DataFrame:
     df = season_day_split(df)
-    shape = df[df["is_train"]].groupby(["season", "daytype", "hour"])["rides"].median()
-    df["expected"] = shape.reindex(
+    expected_by_hour = (
+        df[df["is_train"]].groupby(["season", "daytype", "hour"])["rides"].median()
+    )
+    df["expected"] = expected_by_hour.reindex(
         pd.MultiIndex.from_frame(df[["season", "daytype", "hour"]])
     ).to_numpy()
     df = df.dropna(subset=["expected"])
@@ -113,8 +117,8 @@ def label_panel(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def main():
-    df = label_panel(prepare(_load()))
+def main() -> None:
+    df = label_panel(prepare(load_seoul()))
     train, test = df[df["is_train"]], df[~df["is_train"]]
     model = fit_logistic(train, balanced=False, features=FEATURES)
     probabilities = predict(model, test, features=FEATURES)
@@ -122,7 +126,7 @@ def main():
     if set(train["date"]).intersection(test["date"]):
         raise RuntimeError("Seoul train and test dates overlap")
 
-    row = pd.DataFrame(
+    validation = pd.DataFrame(
         [
             {
                 "city": "Seoul",
@@ -141,7 +145,7 @@ def main():
             }
         ]
     )
-    write_table(row, "seoul_validation")
+    write_table(validation, "seoul_validation")
     write_table(
         test[["date", "hour", "season", "expected", "suppressed"]].assign(
             probability=probabilities
@@ -160,9 +164,9 @@ def main():
         "dc_coefficients_transferred": False,
     }
     (config.TABLES / "seoul_provenance.json").write_text(
-        json.dumps(provenance, indent=2, allow_nan=False) + "\n"
+        json.dumps(provenance, indent=2, allow_nan=False) + "\n", encoding="utf-8"
     )
-    print(row.to_string(index=False))
+    print(validation.to_string(index=False))
 
 
 if __name__ == "__main__":

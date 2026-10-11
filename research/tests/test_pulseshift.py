@@ -5,6 +5,7 @@ import json
 import numpy as np
 import pandas as pd
 import pytest
+from sklearn.metrics import roc_auc_score
 
 from pulseshift import airquality, config, decision, equity, ram, safety
 from pulseshift.evaluation import (
@@ -15,10 +16,16 @@ from pulseshift.evaluation import (
 )
 from pulseshift.features import MODEL_FEATURES, heat_index_f
 from pulseshift.models import ClimatologyBaseline, fit_logistic
-from pulseshift.panel import active, expected_rides, load_panel
+from pulseshift.panel import active, expected_rides, load_panel, verify_checksum
 
 
-def test_heat_index_identity_and_amplifies():
+@pytest.fixture(scope="module")
+def exported_model():
+    source = (config.APP / "model.js").read_text()
+    return json.loads(source.removeprefix("window.PULSESHIFT_MODEL = ").rstrip(";\n"))
+
+
+def test_heat_index_screen_and_humidity_response():
     assert float(heat_index_f(75, 30)) == 74.3
     assert float(heat_index_f(95, 70)) > 95
 
@@ -34,13 +41,13 @@ def test_label_climatology_is_leak_free():
             "rides_total": [100, 200, 1000],
         }
     )
-    exp = expected_rides(base)
+    expected = expected_rides(base)
 
-    assert exp[2] == pytest.approx(200.0, rel=1e-6)
+    assert expected[2] == pytest.approx(200.0, rel=1e-6)
 
     moved = base.copy()
     moved.loc[2, "rides_total"] = 99999
-    assert expected_rides(moved)[2] == pytest.approx(exp[2], rel=1e-6)
+    assert expected_rides(moved)[2] == pytest.approx(expected[2], rel=1e-6)
 
 
 def test_metrics_perfect_and_chance():
@@ -51,8 +58,6 @@ def test_metrics_perfect_and_chance():
 
 def test_bootstrap_ci_ordered():
     y = np.array([0, 0, 1, 1])
-    from sklearn.metrics import roc_auc_score
-
     lo, hi = bootstrap_ci(
         y, np.array([0.1, 0.2, 0.8, 0.9]), roc_auc_score, n=50, require_two_classes=True
     )
@@ -124,17 +129,17 @@ def _synthetic_aqi_panel():
     """Within-day AQI effect plus a day-level confounder correlated with daily AQI."""
     rng = np.random.default_rng(0)
     rows = []
-    for d in range(12):
-        start = pd.Timestamp("2024-01-01") + pd.Timedelta(days=d)
-        day_mean = 20 * d
-        day_boost = 0.02 * d
-        for h in range(24):
-            aqi = day_mean + 40 + 20 * np.sin(2 * np.pi * h / 24)
+    for day_index in range(12):
+        start = pd.Timestamp("2024-01-01") + pd.Timedelta(days=day_index)
+        day_mean = 20 * day_index
+        day_boost = 0.02 * day_index
+        for hour in range(24):
+            aqi = day_mean + 40 + 20 * np.sin(2 * np.pi * hour / 24)
             ratio = 1.0 - 0.004 * aqi + day_boost + rng.normal(0, 0.01)
             rows.append(
                 {
-                    "ts_local": start + pd.Timedelta(hours=h),
-                    "hour": h,
+                    "ts_local": start + pd.Timedelta(hours=hour),
+                    "hour": hour,
                     "aqi": aqi,
                     "rides_total": 100 * ratio,
                     "expected_rides": 100.0,
@@ -162,15 +167,17 @@ def test_within_day_removes_day_confounder():
 
 def test_mde_matches_power_multipliers():
     """MDE = (z_alpha/2 + z_power) * SE, pinning the exact 80%/90% power constants."""
-    w = airquality.within_day_effect(active(load_panel()), n_boot=300)
-    assert w["mde80"] == pytest.approx(config.MDE_Z80 * w["se"], abs=3e-3)
-    assert w["mde90"] == pytest.approx(config.MDE_Z90 * w["se"], abs=3e-3)
+    effect = airquality.within_day_effect(active(load_panel()), n_boot=300)
+    assert effect["mde80"] == pytest.approx(config.MDE_Z80 * effect["se"], abs=3e-3)
+    assert effect["mde90"] == pytest.approx(config.MDE_Z90 * effect["se"], abs=3e-3)
 
 
 def test_smoke_episode_ci_ordered():
-    e = airquality.smoke_episodes(_synthetic_aqi_panel(), aqi_thresh=100, n_boot=200)
-    assert e["polluted_hours"] > 0
-    assert e["ci_low"] <= e["ride_ratio_vs_clean"] <= e["ci_high"]
+    episode = airquality.smoke_episodes(
+        _synthetic_aqi_panel(), aqi_thresh=100, n_boot=200
+    )
+    assert episode["polluted_hours"] > 0
+    assert episode["ci_low"] <= episode["ride_ratio_vs_clean"] <= episode["ci_high"]
 
 
 def test_measurement_error_deattenuates():
@@ -187,32 +194,26 @@ def test_measurement_error_deattenuates():
     assert by_rho[0.5] < by_rho[0.7] < 0
 
 
-def test_served_model_matches_export():
-    "model.js must reproduce a fresh unweighted fit: features, scaler, and coefficients."
-    model_path = config.APP / "model.js"
-    m = json.loads(
-        model_path.read_text().removeprefix("window.PULSESHIFT_MODEL = ").rstrip(";\n")
-    )
-    assert list(m["features"]) == MODEL_FEATURES
+def test_served_model_matches_export(exported_model):
+    """Exported parameters must match a fresh unweighted fit."""
+    assert list(exported_model["features"]) == MODEL_FEATURES
     model = fit_logistic(active(load_panel()), balanced=False)
     scaler = model.named_steps["scale"]
-    clf = model.named_steps["clf"]
-    assert np.allclose(scaler.mean_, m["mean"], atol=1e-6)
-    assert np.allclose(scaler.scale_, m["scale"], atol=1e-6)
-    assert np.allclose(clf.coef_[0], m["coef"], atol=1e-6)
-    assert clf.intercept_[0] == pytest.approx(m["intercept"], abs=1e-6)
-
-
-def test_export_constants_match_config():
-    """Exported safety + thermal-stress hinges must match config so the app can't drift."""
-    model_path = config.APP / "model.js"
-    m = json.loads(
-        model_path.read_text().removeprefix("window.PULSESHIFT_MODEL = ").rstrip(";\n")
+    classifier = model.named_steps["clf"]
+    assert np.allclose(scaler.mean_, exported_model["mean"], atol=1e-6)
+    assert np.allclose(scaler.scale_, exported_model["scale"], atol=1e-6)
+    assert np.allclose(classifier.coef_[0], exported_model["coef"], atol=1e-6)
+    assert classifier.intercept_[0] == pytest.approx(
+        exported_model["intercept"], abs=1e-6
     )
-    assert m["safety"]["heat_unsafe_f"] == config.HEAT_UNSAFE_F
-    assert m["safety"]["aqi_unsafe"] == config.AQI_UNSAFE
-    assert m["stress"]["cold_base_f"] == config.COLD_STRESS_BASE_F
-    assert m["stress"]["heat_base_f"] == config.HEAT_STRESS_BASE_F
+
+
+def test_export_constants_match_config(exported_model):
+    """The app and analysis must use the same safety and thermal-stress limits."""
+    assert exported_model["safety"]["heat_unsafe_f"] == config.HEAT_UNSAFE_F
+    assert exported_model["safety"]["aqi_unsafe"] == config.AQI_UNSAFE
+    assert exported_model["stress"]["cold_base_f"] == config.COLD_STRESS_BASE_F
+    assert exported_model["stress"]["heat_base_f"] == config.HEAT_STRESS_BASE_F
 
 
 def _hourly_frame(heat, aqi, risk):
@@ -259,26 +260,23 @@ def test_policy_cancels_when_no_safe_window():
     assert ram.ram_table(reco)["share_cancel"] == 1.0
 
 
-def test_export_scores_match_pipeline():
-    "The shipped arrays must reproduce the model's probabilities, not just its coefficients."
-    model_path = config.APP / "model.js"
-    m = json.loads(
-        model_path.read_text().removeprefix("window.PULSESHIFT_MODEL = ").rstrip(";\n")
-    )
+def test_export_scores_match_pipeline(exported_model):
+    """Exported parameters must reproduce pipeline probabilities."""
     work = active(load_panel())
-    x = work[MODEL_FEATURES].to_numpy(dtype=float)
-    z = float(m["intercept"]) + ((x - m["mean"]) / m["scale"]) @ np.asarray(m["coef"])
+    features = work[MODEL_FEATURES].to_numpy(dtype=float)
+    standardized = (features - exported_model["mean"]) / exported_model["scale"]
+    logits = float(exported_model["intercept"]) + standardized @ np.asarray(
+        exported_model["coef"]
+    )
     served = fit_logistic(work, balanced=False)
-    p_pipeline = served.predict_proba(work[MODEL_FEATURES])[:, 1]
-    assert np.allclose(1.0 / (1.0 + np.exp(-z)), p_pipeline, atol=1e-6)
+    probabilities = served.predict_proba(work[MODEL_FEATURES])[:, 1]
+    assert np.allclose(1.0 / (1.0 + np.exp(-logits)), probabilities, atol=1e-6)
 
 
 def test_panel_matches_committed_checksum():
     """The committed panel must match its recorded hash, and the hash must exist."""
-    from pulseshift import panel
-
     assert (config.PROCESSED / "panel.sha256").exists()
-    panel.verify_checksum()
+    verify_checksum()
 
 
 def test_net_benefit_reference_and_dominance():

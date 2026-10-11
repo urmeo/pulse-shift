@@ -1,24 +1,28 @@
 const model = window.PULSESHIFT_MODEL;
 const element = (id) => document.getElementById(id);
 const DC_TIME_ZONE = "America/New_York";
+const SECONDS_PER_HOUR = 3600;
+const MILLISECONDS_PER_HOUR = SECONDS_PER_HOUR * 1000;
 const COLD_BASE_F = model.stress.cold_base_f;
 const HEAT_BASE_F = model.stress.heat_base_f;
 let editRevision = 0;
 
-function heatIndex(t, rh) {
-  const simple = (0.5 * (t + 61 + (t - 68) * 1.2 + rh * 0.094) + t) / 2;
-  let hi = simple;
+function heatIndex(temperatureF, humidity) {
+  const simple = (0.5 * (temperatureF + 61 + (temperatureF - 68) * 1.2 + humidity * 0.094) + temperatureF) / 2;
+  let heatIndexF = simple;
   if (simple >= 80) {
-    hi = -42.379 + 2.04901523 * t + 10.14333127 * rh - 0.22475541 * t * rh -
-      0.00683783 * t * t - 0.05481717 * rh * rh + 0.00122874 * t * t * rh +
-      0.00085282 * t * rh * rh - 0.00000199 * t * t * rh * rh;
-    if (rh < 13 && t >= 80 && t <= 112) {
-      hi -= ((13 - rh) / 4) * Math.sqrt((17 - Math.abs(t - 95)) / 17);
-    } else if (rh > 85 && t >= 80 && t <= 87) {
-      hi += ((rh - 85) / 10) * ((87 - t) / 5);
+    heatIndexF = -42.379 + 2.04901523 * temperatureF + 10.14333127 * humidity -
+      0.22475541 * temperatureF * humidity - 0.00683783 * temperatureF * temperatureF -
+      0.05481717 * humidity * humidity + 0.00122874 * temperatureF * temperatureF * humidity +
+      0.00085282 * temperatureF * humidity * humidity -
+      0.00000199 * temperatureF * temperatureF * humidity * humidity;
+    if (humidity < 13 && temperatureF >= 80 && temperatureF <= 112) {
+      heatIndexF -= ((13 - humidity) / 4) * Math.sqrt((17 - Math.abs(temperatureF - 95)) / 17);
+    } else if (humidity > 85 && temperatureF >= 80 && temperatureF <= 87) {
+      heatIndexF += ((humidity - 85) / 10) * ((87 - temperatureF) / 5);
     }
   }
-  const scaled = hi * 10;
+  const scaled = heatIndexF * 10;
   const floor = Math.floor(scaled);
   // Match NumPy's rounding of exact halves to the nearest even digit.
   const rounded = scaled - floor === 0.5 ? floor + (Math.abs(floor) % 2) : Math.round(scaled);
@@ -27,11 +31,11 @@ function heatIndex(t, rh) {
 
 function features(input) {
   const angle = (2 * Math.PI * input.hour) / 24;
-  const hi = heatIndex(input.temp, input.humidity);
+  const heatIndexF = heatIndex(input.temp, input.humidity);
   return {
-    heat_index_f: hi,
+    heat_index_f: heatIndexF,
     cold_stress: Math.max(0, COLD_BASE_F - input.temp),
-    heat_stress: Math.max(0, hi - HEAT_BASE_F),
+    heat_stress: Math.max(0, heatIndexF - HEAT_BASE_F),
     aqi: input.aqi,
     humidity: input.humidity,
     wind_mph: input.wind,
@@ -47,20 +51,20 @@ function features(input) {
 function predictSuppression(input) {
   const values = features(input);
   let score = model.intercept;
-  model.features.forEach((name, i) => {
-    if (!Number.isFinite(values[name]) || !Number.isFinite(model.coef[i]) || !(model.scale[i] > 0)) {
+  for (const [index, name] of model.features.entries()) {
+    if (!Number.isFinite(values[name]) || !Number.isFinite(model.coef[index]) || !(model.scale[index] > 0)) {
       throw new Error("Model inputs or coefficients are invalid.");
     }
-    score += model.coef[i] * ((values[name] - model.mean[i]) / model.scale[i]);
-  });
+    score += model.coef[index] * ((values[name] - model.mean[index]) / model.scale[index]);
+  }
   if (!Number.isFinite(score)) throw new Error("Model score is invalid.");
   return 1 / (1 + Math.exp(-score));
 }
 
-function percent(p) {
-  if (p < 0.01) return "<1%";
-  if (p > 0.99) return ">99%";
-  return Math.round(p * 100) + "%";
+function percent(probability) {
+  if (probability < 0.01) return "<1%";
+  if (probability > 0.99) return ">99%";
+  return Math.round(probability * 100) + "%";
 }
 
 function riskClass(probability) {
@@ -86,9 +90,15 @@ function readInputs() {
   const hour = Number(element("hour").value);
   if (!Number.isInteger(hour) || hour < 0 || hour > 23) throw new Error("Select a start hour.");
   return {
-    temp: readNumber("temp"), humidity: readNumber("humidity"), aqi: readNumber("aqi"),
-    wind: readNumber("wind"), precip: readNumber("precip"), visibility: readNumber("visibility"),
-    hour, weekend: element("weekend").checked, smoke: element("smoke").checked,
+    temp: readNumber("temp"),
+    humidity: readNumber("humidity"),
+    aqi: readNumber("aqi"),
+    wind: readNumber("wind"),
+    precip: readNumber("precip"),
+    visibility: readNumber("visibility"),
+    hour,
+    weekend: element("weekend").checked,
+    smoke: element("smoke").checked,
   };
 }
 
@@ -114,51 +124,59 @@ function update() {
   }
 }
 
-function dcHourWeekend(epoch) {
+function dcHourWeekend(epochSeconds) {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: DC_TIME_ZONE, hour: "numeric", hourCycle: "h23", weekday: "short",
-  }).formatToParts(new Date(epoch * 1000));
-  const hour = Number(parts.find((x) => x.type === "hour").value);
-  const weekday = parts.find((x) => x.type === "weekday").value;
+  }).formatToParts(new Date(epochSeconds * 1000));
+  const hour = Number(parts.find((part) => part.type === "hour").value);
+  const weekday = parts.find((part) => part.type === "weekday").value;
   return { hour, weekend: weekday === "Sat" || weekday === "Sun" };
 }
 
 function forecastInputs(weather, air, smoke, now = Date.now()) {
   const weatherUnits = weather.hourly_units;
   const weatherHours = weather.hourly;
+  const airUnits = air.hourly_units;
   const airHours = air.hourly;
   if (!weatherUnits || weatherUnits.time !== "unixtime" || weatherUnits.temperature_2m !== "°F" ||
       weatherUnits.relative_humidity_2m !== "%" || !["mp/h", "mph"].includes(weatherUnits.wind_speed_10m) ||
       weatherUnits.precipitation !== "inch" || !["m", "ft"].includes(weatherUnits.visibility) ||
-      !air.hourly_units || air.hourly_units.time !== "unixtime" || air.hourly_units.us_aqi !== "USAQI" || !weatherHours || !airHours) {
+      !airUnits || airUnits.time !== "unixtime" || airUnits.us_aqi !== "USAQI" || !weatherHours || !airHours) {
     throw new Error("Unexpected forecast units or fields.");
   }
   const fields = ["temperature_2m", "relative_humidity_2m", "wind_speed_10m", "precipitation", "visibility"];
-  if (!Array.isArray(weatherHours.time) || !fields.every((f) => Array.isArray(weatherHours[f]) && weatherHours[f].length === weatherHours.time.length) ||
+  if (!Array.isArray(weatherHours.time) ||
+      !fields.every((field) => Array.isArray(weatherHours[field]) && weatherHours[field].length === weatherHours.time.length) ||
       !Array.isArray(airHours.time) || !Array.isArray(airHours.us_aqi) || airHours.time.length !== airHours.us_aqi.length) {
     throw new Error("Incomplete forecast response.");
   }
   if (new Set(weatherHours.time).size !== weatherHours.time.length || new Set(airHours.time).size !== airHours.time.length) {
     throw new Error("Ambiguous forecast response: duplicate timestamps.");
   }
-  const aqiByTime = new Map(airHours.time.map((t, i) => [t, airHours.us_aqi[i]]));
-  const start = Math.floor(now / 3600000) * 3600;
+  const aqiByTime = new Map(airHours.time.map((epoch, index) => [epoch, airHours.us_aqi[index]]));
+  const startEpoch = Math.floor(now / MILLISECONDS_PER_HOUR) * SECONDS_PER_HOUR;
+  const visibilityUnitsPerMile = weatherUnits.visibility === "ft" ? 5280 : 1609.344;
   const rows = [];
-  weatherHours.time.forEach((epoch, i) => {
-    if (!Number.isFinite(epoch) || epoch < start || epoch >= start + 86400) return;
+  for (const [index, epoch] of weatherHours.time.entries()) {
+    if (!Number.isFinite(epoch) || epoch < startEpoch || epoch >= startEpoch + 24 * SECONDS_PER_HOUR) continue;
     const input = {
-      epoch, temp: weatherHours.temperature_2m[i], humidity: weatherHours.relative_humidity_2m[i],
-      wind: weatherHours.wind_speed_10m[i], precip: weatherHours.precipitation[i], aqi: aqiByTime.get(epoch),
-      visibility: Math.min(10, weatherHours.visibility[i] / (weatherUnits.visibility === "ft" ? 5280 : 1609.344)),
-      ...dcHourWeekend(epoch), smoke,
+      epoch,
+      temp: weatherHours.temperature_2m[index],
+      humidity: weatherHours.relative_humidity_2m[index],
+      wind: weatherHours.wind_speed_10m[index],
+      precip: weatherHours.precipitation[index],
+      aqi: aqiByTime.get(epoch),
+      visibility: Math.min(10, weatherHours.visibility[index] / visibilityUnitsPerMile),
+      ...dcHourWeekend(epoch),
+      smoke,
     };
-    if (!fields.every((f) => Number.isFinite(weatherHours[f][i])) || !Number.isFinite(input.aqi) ||
+    if (!fields.every((field) => Number.isFinite(weatherHours[field][index])) || !Number.isFinite(input.aqi) ||
         input.temp < -40 || input.temp > 130 || input.humidity < 0 || input.humidity > 100 ||
         input.aqi < 0 || input.aqi > 500 || input.wind < 0 || input.wind > 100 ||
-        input.precip < 0 || input.precip > 5 || input.visibility < 0) return;
+        input.precip < 0 || input.precip > 5 || input.visibility < 0) continue;
     rows.push(input);
-  });
-  return rows.sort((x, y) => x.epoch - y.epoch);
+  }
+  return rows.sort((first, second) => first.epoch - second.epoch);
 }
 
 function bestForecastHour(rows) {
@@ -172,9 +190,9 @@ function bestForecastHour(rows) {
   return best;
 }
 
-async function fetchJson(url, ms = 8000) {
+async function fetchJson(url, timeoutMs = 8000) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), ms);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetch(url, { signal: controller.signal });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -187,7 +205,7 @@ async function fetchJson(url, ms = 8000) {
 async function liveWeather() {
   const button = element("live");
   if (button.disabled) return;
-  const revision = editRevision;
+  const requestRevision = editRevision;
   const now = Date.now();
   button.disabled = true;
   button.textContent = "Loading…";
@@ -202,22 +220,25 @@ async function liveWeather() {
         "&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation,visibility&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch"),
       fetchJson("https://air-quality-api.open-meteo.com/v1/air-quality?" + query + "&hourly=us_aqi"),
     ]);
-    if (revision !== editRevision) {
+    if (requestRevision !== editRevision) {
       element("error").textContent = "Inputs changed during loading. Load the forecast again to replace them.";
       return;
     }
     const rows = forecastInputs(weather, air, element("smoke").checked, now);
-    const first = rows.find((r) => r.epoch === Math.floor(now / 3600000) * 3600);
-    if (!first) throw new Error("Current-hour weather or AQI is missing.");
-    ["temp", "humidity", "aqi", "wind", "precip", "visibility", "hour"].forEach((id) => { element(id).value = first[id]; });
-    element("weekend").checked = first.weekend;
+    const currentEpoch = Math.floor(now / MILLISECONDS_PER_HOUR) * SECONDS_PER_HOUR;
+    const current = rows.find((input) => input.epoch === currentEpoch);
+    if (!current) throw new Error("Current-hour weather or AQI is missing.");
+    for (const id of ["temp", "humidity", "aqi", "wind", "precip", "visibility", "hour"]) {
+      element(id).value = current[id];
+    }
+    element("weekend").checked = current.weekend;
     update();
     const best = bestForecastHour(rows);
-    const stamp = best && new Intl.DateTimeFormat("en-US", {
+    const forecastTime = best && new Intl.DateTimeFormat("en-US", {
       timeZone: DC_TIME_ZONE, weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZoneName: "short",
     }).format(new Date(best.epoch * 1000));
     element("besthour").textContent = best
-      ? `Lowest estimated chance of low demand in the next 24 hours, within study limits: ${stamp} (${percent(best.risk)}, AQI ${Math.round(best.aqi)}).`
+      ? `Lowest estimated chance of low demand in the next 24 hours, within study limits: ${forecastTime} (${percent(best.risk)}, AQI ${Math.round(best.aqi)}).`
       : "No complete daytime forecast hour meets the study's heat and AQI limits.";
     element("forecastnote").textContent = "Open-Meteo weather and CAMS AQI forecasts. Hours from 06:00 to 21:00 DC time are compared. Smoke/haze uses your checkbox setting. Hours with missing data are excluded. Visibility is capped at 10 mi to match the training data.";
     button.textContent = "DC forecast loaded";
@@ -241,13 +262,18 @@ function init() {
     hourSelect.appendChild(option);
   }
   hourSelect.value = 17;
-  document.querySelectorAll("input, select").forEach((el) => el.addEventListener("input", () => {
-    editRevision++;
-    if (!element("live").disabled) element("live").textContent = "Load DC forecast";
-    element("forecastnote").textContent = "";
+  for (const input of document.querySelectorAll("input, select")) {
+    input.addEventListener("input", () => {
+      editRevision++;
+      if (!element("live").disabled) element("live").textContent = "Load DC forecast";
+      element("forecastnote").textContent = "";
+      update();
+    });
+  }
+  element("form").addEventListener("submit", (event) => {
+    event.preventDefault();
     update();
-  }));
-  element("form").addEventListener("submit", (event) => { event.preventDefault(); update(); });
+  });
   element("live").addEventListener("click", liveWeather);
   element("meta").textContent = `DC 2022–2024 · 2024 test AUROC ${model.meta.auroc_2024}`;
   element("meta").title = model.meta.metrics_note;
