@@ -1,0 +1,27 @@
+html { scroll-padding-top: 24px; }
+section { scroll-margin-top: 24px; }
+video {
+  display: block;
+  width: 100%;
+  max-height: 80vh;
+  background: #000;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+video:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+video::cue {
+  color: #fff;
+  background: rgb(0 0 0 / 85%);
+}
+.video-links { font-size: 0.95rem; }
+details {
+  padding: 16px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+summary { cursor: pointer; }
+details li { margin-top: 8px; }

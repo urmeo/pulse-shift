@@ -1,0 +1,27 @@
+WEBVTT
+
+00:00.000 --> 00:02.500
+2024 test: AUROC 0.936, average precision 0.488, Brier score 0.021.
+
+00:03.300 --> 00:06.300
+Shared preparation branches into historical evaluation and a separate browser refit.
+
+00:07.100 --> 00:10.100
+Five models compared on 8,204 test hours from 2024.
+
+00:10.900 --> 00:12.900
+ROC curves compare true-positive and false-positive rates.
+
+00:13.700 --> 00:15.700
+Precision–recall curves show performance on the low-demand label.
+
+00:16.500 --> 00:19.500
+Mean prediction: 6.88%. Observed rate: 2.46%.
+Probabilities overestimate the event rate.
+
+00:20.300 --> 00:22.300
+Model scores include discrimination, probability error and calibration.
+
+00:23.100 --> 00:26.600
+Simulated recovery: 36.8% under full transfer;
+18.4% at an assumed 50% transfer efficiency.

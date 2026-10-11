@@ -1,0 +1,17 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:05.079
+Manual example: 85°F, 55% humidity, AQI 60 and 17:00 DC time.
+
+2
+00:00:05.079 --> 00:00:11.193
+Set precipitation to 0.4 in/hr. The displayed estimate becomes 11%.
+
+3
+00:00:11.193 --> 00:00:18.361
+At 100°F and 39% humidity, heat index is 108.5°F: study threshold exceeded.
+
+4
+00:00:18.361 --> 00:00:22.450
+Restore the manual example. Live forecasts require a separate action.

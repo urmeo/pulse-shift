@@ -6,7 +6,23 @@ PulseShift estimates the chance that hourly Capital Bikeshare rides fall below h
 
 [Open the app](https://urmeo.github.io/pulse-shift/) · [Charts and results](https://urmeo.github.io/pulse-shift/results/) · [Data and methods](results/README.md) · [Reproduce the analysis](docs/development.md)
 
-[![PulseShift browser app with weather inputs and a low-demand estimate](results/figures/pulseshift-ui.jpg)](https://urmeo.github.io/pulse-shift/)
+<a href="https://urmeo.github.io/pulse-shift/">
+  <picture>
+    <source media="(max-width: 640px)" srcset="docs/media/app-mobile.png">
+    <img src="docs/media/app-desktop.png" alt="PulseShift with manual weather and AQI inputs, the estimated chance of low bike-share demand, and the model's operating limits.">
+  </picture>
+</a>
+
+## Video walkthroughs
+
+These silent recordings show the working interface. Select a preview to play the full video with controls and English captions.
+
+| Manual app estimates | Pipeline and research charts |
+| --- | --- |
+| <a href="https://urmeo.github.io/pulse-shift/docs/demos/#app"><picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/media/app-desktop.png"><img src="docs/media/app-preview.gif" alt="App recording preview: change precipitation, read the updated demand estimate and inspect the heat-index study warning."></picture></a> | <a href="https://urmeo.github.io/pulse-shift/docs/demos/#results"><picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/media/results-overview.png"><img src="docs/media/results-preview.gif" alt="Results recording preview: follow the pipeline and inspect historical model comparisons, curves, calibration and simulated time shifts."></picture></a> |
+| [Watch the app video](https://urmeo.github.io/pulse-shift/docs/demos/#app) · [MP4](docs/media/app-walkthrough.mp4) | [Watch the results video](https://urmeo.github.io/pulse-shift/docs/demos/#results) · [MP4](docs/media/results-walkthrough.mp4) |
+
+The app recording uses manual conditions. The results recording shows historical evaluation and simulations; live forecast accuracy and actual ride recovery remain unmeasured.
 
 ## Pipeline
 
