@@ -4,24 +4,29 @@ WEBVTT
 2024 test: AUROC 0.936, average precision 0.488, Brier score 0.021.
 
 00:03.300 --> 00:06.300
-Shared preparation branches into historical evaluation and a separate browser refit.
+Public rides, weather and AQI share hourly alignment,
+labels and 12 model features.
 
-00:07.100 --> 00:10.100
+00:07.100 --> 00:11.100
+Historical models fit 2022–2023 and test 2024.
+Browser parameters use a separate all-years refit.
+
+00:11.900 --> 00:14.900
 Five models compared on 8,204 test hours from 2024.
 
-00:10.900 --> 00:12.900
+00:15.700 --> 00:17.700
 ROC curves compare true-positive and false-positive rates.
 
-00:13.700 --> 00:15.700
+00:18.500 --> 00:20.500
 Precision–recall curves show performance on the low-demand label.
 
-00:16.500 --> 00:19.500
+00:21.300 --> 00:24.300
 Mean prediction: 6.88%. Observed rate: 2.46%.
 Probabilities overestimate the event rate.
 
-00:20.300 --> 00:22.300
+00:25.100 --> 00:27.100
 Model scores include discrimination, probability error and calibration.
 
-00:23.100 --> 00:26.600
+00:27.900 --> 00:31.400
 Simulated recovery: 36.8% under full transfer;
 18.4% at an assumed 50% transfer efficiency.

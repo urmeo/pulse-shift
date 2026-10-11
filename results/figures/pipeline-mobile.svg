@@ -1,76 +1,89 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="440" height="1530" viewBox="0 0 440 1530" role="img" aria-labelledby="title description">
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="2080" viewBox="0 0 440 2080" role="img" aria-labelledby="title description">
   <title id="title">PulseShift pipeline: mobile layout</title>
-  <desc id="description">Public rides, weather and AQI form an hourly panel. Shared labels and 12 features feed two separate paths: historical evaluation on 2024 after training on 2022–2023, and an all-active-hours browser refit. Each model path branches directly from the prepared data.</desc>
+  <desc id="description">Public rides, weather and AQI become an hourly panel and shared training-fitted labels. Historical models fit 2022–2023, predict held-out 2024 and evaluate predictions. A separate model refits all active hours, exports parameters and scores manual or DC forecast inputs. The blue allocation strip uses the recorded training and test hour counts.</desc>
+  <metadata>{&quot;counts_and_scores&quot;: &quot;results/tables/summary.json&quot;, &quot;sha256&quot;: &quot;ad37df253a4a5459d12d6119565b362b58232804aead88028fcbf4c40aa2fe0b&quot;, &quot;scope&quot;: &quot;Historical scores use the 2022\u20132023 fit evaluated on 2024; browser parameters are a separate refit.&quot;}</metadata>
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-      <path d="M0 0 L10 5 L0 10 Z" fill="#a8b9c8"/>
-    </marker>
-    <marker id="research-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-      <path d="M0 0 L10 5 L0 10 Z" fill="#38bdf8"/>
-    </marker>
-    <marker id="browser-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-      <path d="M0 0 L10 5 L0 10 Z" fill="#5eead4"/>
-    </marker>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#64748b"/></marker>
   </defs>
-  <rect width="440" height="1530" rx="16" fill="#101923"/>
-  <g font-family="Arial, sans-serif" fill="#e8eef4">
-    <text x="28" y="40" font-size="27" font-weight="700">From data to estimates</text>
-    <text x="28" y="72" font-size="21" fill="#a8b9c8">DC study · 2022–2024</text>
-
-    <g id="sources">
-      <rect x="28" y="100" width="384" height="156" rx="12" fill="#182b3b" stroke="#496174"/>
-      <text x="48" y="138" font-size="25" font-weight="700">1. Public sources</text>
-      <text x="48" y="174" font-size="22">Capital Bikeshare rides</text>
-      <text x="48" y="206" font-size="22">NOAA DCA weather</text>
-      <text x="48" y="238" font-size="22">CAMS AQI + EPA fallback</text>
+  <rect width="440" height="2080" rx="16" fill="#ffffff"/>
+  <g font-family="Arial, sans-serif" fill="#0f172a">
+    <text x="40" y="42" font-size="28" fill="#0f172a" font-weight="700">Shared data,</text>
+    <text x="40" y="78" font-size="28" fill="#0f172a" font-weight="700">two model paths</text>
+    <text x="40" y="110" font-size="18" fill="#334155">PulseShift · DC · 2022–2024</text>
+    <g id="public-sources">
+    <rect x="40" y="140" width="372" height="130" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="60" y="174" font-size="22" fill="#0f172a" font-weight="700">1. Public sources</text>
+    <text x="60" y="210" font-size="20" fill="#334155">Capital Bikeshare rides</text>
+    <text x="60" y="244" font-size="19" fill="#334155">NOAA weather · CAMS / EPA AQI</text>
     </g>
-    <path d="M220 256 V292" fill="none" stroke="#a8b9c8" stroke-width="3" marker-end="url(#arrow)"/>
+    <path d="M226 270 V294" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrow)"/>
     <g id="hourly-panel">
-      <rect x="28" y="300" width="384" height="136" rx="12" fill="#182b3b" stroke="#496174"/>
-      <text x="48" y="338" font-size="25" font-weight="700">2. Hourly panel</text>
-      <text x="48" y="374" font-size="22">UTC joins · DC calendar</text>
-      <text x="48" y="406" font-size="22">26,288 records · 2022–2024</text>
+    <rect x="40" y="302" width="372" height="126" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="60" y="336" font-size="22" fill="#0f172a" font-weight="700">2. Hourly panel</text>
+    <text x="60" y="374" font-size="26" fill="#0f172a" font-weight="700">26,288 hourly records</text>
+    <text x="60" y="406" font-size="20" fill="#334155">UTC joins · DC calendar</text>
     </g>
-    <path d="M220 436 V472" fill="none" stroke="#a8b9c8" stroke-width="3" marker-end="url(#arrow)"/>
-    <g id="labels-and-features">
-      <rect x="28" y="480" width="384" height="166" rx="12" fill="#182b3b" stroke="#496174"/>
-      <text x="48" y="518" font-size="25" font-weight="700">3. Labels + features</text>
-      <text x="48" y="554" font-size="22">Expected ≥20 → active</text>
-      <text x="48" y="586" font-size="22">Rides &lt;50% of expected</text>
-      <text x="48" y="618" font-size="22">24,354 hours · 12 features</text>
+    <path d="M226 428 V452" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrow)"/>
+    <g id="target-and-features">
+    <rect x="40" y="460" width="372" height="156" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="60" y="494" font-size="22" fill="#0f172a" font-weight="700">3. Target + features</text>
+    <text x="60" y="530" font-size="20" fill="#334155">Expected rides ≥20</text>
+    <text x="60" y="560" font-size="20" fill="#334155">Rides &lt;50% of expected</text>
+    <text x="60" y="594" font-size="21" fill="#0f172a" font-weight="700">24,354 hours · 12 features</text>
     </g>
-
-    <path d="M220 646 V674 H16 V1104" fill="none" stroke="#a8b9c8" stroke-width="3"/>
-    <text x="40" y="712" font-size="25" font-weight="700">Two separate model paths</text>
-    <path d="M16 762 H34" fill="none" stroke="#38bdf8" stroke-width="3" marker-end="url(#research-arrow)"/>
-    <path d="M16 1104 H34" fill="none" stroke="#5eead4" stroke-width="3" marker-end="url(#browser-arrow)"/>
-    <circle cx="16" cy="762" r="4" fill="#a8b9c8"/>
-
+    <text x="40" y="650" font-size="18" fill="#334155">Expected counts: 2022–2023 baseline.</text>
+    <text x="40" y="676" font-size="18" fill="#334155">Same labels in both model paths.</text>
+    <path d="M226 616 V630 H16 V1454" fill="none" stroke="#64748b" stroke-width="2.5"/>
+    <path d="M16 742 H32" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrow)"/>
+    <path d="M16 1454 H32" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrow)"/>
     <g id="historical-evaluation">
-      <rect x="40" y="738" width="372" height="290" rx="12" fill="#142a3a" stroke="#38bdf8" stroke-width="2"/>
-      <text x="60" y="776" font-size="25" font-weight="700" fill="#7dd3fc">A. Historical evaluation</text>
-      <text x="60" y="814" font-size="22">Fit: 2022–2023 · 16,150 h</text>
-      <text x="60" y="846" font-size="22">Test: 2024 · 8,204 h</text>
-      <path d="M60 864 H392" stroke="#34516a"/>
-      <text x="60" y="900" font-size="23" font-weight="700">Compare five variants</text>
-      <text x="60" y="932" font-size="22">ROC · PR · calibration</text>
-      <text x="60" y="964" font-size="22">Unweighted: day bootstrap</text>
-      <text x="60" y="996" font-size="22">Historical shift simulations</text>
+    <rect x="40" y="708" width="372" height="680" rx="12" fill="#f4f8ff" stroke="#bfdbfe"/>
+    <text x="60" y="746" font-size="23" fill="#1d4ed8" font-weight="700">A. Historical evaluation</text>
+    <rect x="60" y="774" width="332" height="96" rx="12" fill="#ffffff" stroke="#bfdbfe"/>
+    <rect x="60" y="902" width="332" height="96" rx="12" fill="#ffffff" stroke="#bfdbfe"/>
+    <rect x="60" y="1030" width="332" height="118" rx="12" fill="#ffffff" stroke="#bfdbfe"/>
+    <rect x="60" y="1180" width="332" height="190" rx="12" fill="#ffffff" stroke="#bfdbfe"/>
+    <path d="M226 870 V894" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrow)"/>
+    <path d="M226 998 V1022" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrow)"/>
+    <path d="M226 1148 V1172" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrow)"/>
+    <text x="80" y="808" font-size="20" fill="#0f172a" font-weight="700">Fit five model variants</text>
+    <text x="80" y="842" font-size="19" fill="#334155">2022–2023 · 16,150 h</text>
+    <text x="80" y="936" font-size="20" fill="#0f172a" font-weight="700">Predict held-out 2024</text>
+    <text x="80" y="970" font-size="19" fill="#334155">8,204 test hours</text>
+    <text x="80" y="1064" font-size="20" fill="#0f172a" font-weight="700">Evaluate predictions</text>
+    <text x="80" y="1098" font-size="18" fill="#334155">ROC · PR · calibration</text>
+    <text x="80" y="1130" font-size="17" fill="#334155">Unweighted: whole-day intervals</text>
+    <text x="80" y="1212" font-size="18" fill="#1d4ed8" font-weight="700">Recorded evaluation</text>
+    <rect x="80" y="1230" width="193.636" height="14" rx="0" fill="#2563eb" stroke="none"/>
+    <rect x="273.63599999999997" y="1230" width="98.364" height="14" rx="0" fill="#93c5fd" stroke="none"/>
+    <text x="80" y="1272" font-size="18" fill="#334155">16,150 train</text>
+    <text x="280" y="1272" font-size="18" fill="#334155">8,204 test</text>
+    <text x="80" y="1308" font-size="17" fill="#1d4ed8" font-weight="700">Unweighted 2024 test</text>
+    <text x="80" y="1334" font-size="18" fill="#334155">AUROC 0.936 · AP 0.488</text>
+    <text x="80" y="1358" font-size="18" fill="#334155">Brier 0.021</text>
     </g>
-    <g id="browser-model">
-      <rect x="40" y="1080" width="372" height="340" rx="12" fill="#132d30" stroke="#5eead4" stroke-width="2"/>
-      <text x="60" y="1118" font-size="25" font-weight="700" fill="#5eead4">B. Browser model</text>
-      <text x="60" y="1156" font-size="22">Refit all 24,354 active hours</text>
-      <text x="60" y="1188" font-size="22">Unweighted logistic · 12 features</text>
-      <text x="60" y="1220" font-size="22">Export scaler + coefficients</text>
-      <path d="M60 1240 H392" stroke="#34565a"/>
-      <text x="60" y="1276" font-size="22">Manual inputs or DC forecast</text>
-      <text x="60" y="1308" font-size="22">Estimate low-demand chance</text>
-      <text x="60" y="1340" font-size="22">Compare daytime hours</text>
-      <text x="60" y="1372" font-size="22">Next 24 h · 06:00–21:00 DC</text>
-      <text x="60" y="1404" font-size="21">Study heat and AQI exclusions</text>
+    <g id="browser-estimates">
+    <rect x="40" y="1420" width="372" height="564" rx="12" fill="#f1fbf8" stroke="#99d6c8"/>
+    <text x="60" y="1458" font-size="23" fill="#0f766e" font-weight="700">B. Browser estimates</text>
+    <rect x="60" y="1486" width="332" height="96" rx="12" fill="#ffffff" stroke="#99d6c8"/>
+    <rect x="60" y="1614" width="332" height="106" rx="12" fill="#ffffff" stroke="#99d6c8"/>
+    <rect x="60" y="1742" width="332" height="112" rx="12" fill="#ffffff" stroke="#99d6c8"/>
+    <rect x="60" y="1870" width="332" height="92" rx="12" fill="#ffffff" stroke="#99d6c8"/>
+    <path d="M226 1582 V1606" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrow)"/>
+    <path d="M226 1720 V1734" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrow)"/>
+    <text x="80" y="1520" font-size="20" fill="#0f172a" font-weight="700">Refit unweighted logistic</text>
+    <text x="80" y="1554" font-size="19" fill="#334155">All 24,354 active hours</text>
+    <text x="80" y="1648" font-size="20" fill="#0f172a" font-weight="700">Export browser parameters</text>
+    <text x="80" y="1680" font-size="18" fill="#334155">Scaler, weights and intercept</text>
+    <text x="80" y="1708" font-size="17" fill="#0f766e">app/model.js</text>
+    <text x="80" y="1776" font-size="20" fill="#0f172a" font-weight="700">Estimate low-demand chance</text>
+    <text x="80" y="1808" font-size="18" fill="#334155">Manual → one estimate</text>
+    <text x="80" y="1840" font-size="18" fill="#334155">DC forecast → compare hours</text>
+    <text x="80" y="1898" font-size="18" fill="#0f766e" font-weight="700">Forecast: next 24 h · 06–21 DC</text>
+    <text x="80" y="1924" font-size="18" fill="#334155">Heat index &lt;103°F · AQI &lt;150</text>
+    <text x="80" y="1950" font-size="18" fill="#334155">Complete inputs · no live evaluation</text>
     </g>
-    <text x="28" y="1464" font-size="19" fill="#a8b9c8">2024 scores describe the historical test.</text>
-    <text x="28" y="1494" font-size="19" fill="#a8b9c8">The browser uses a separate all-years fit.</text>
+    <text x="40" y="2024" font-size="17" fill="#334155">Historical scores use the 2024 test.</text>
+    <text x="40" y="2050" font-size="17" fill="#334155">Time-shift recovery is simulated.</text>
   </g>
 </svg>
