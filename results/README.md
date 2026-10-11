@@ -4,6 +4,8 @@
 
 The figures and tables in this directory come from the committed DC panel and the separate Seoul analysis. The report presents historical evaluation, observational associations and simulated policy outcomes. Browser coefficients are refit separately on all active DC hours.
 
+The [pipeline guide](../docs/pipeline.md) traces data preparation, target construction, historical evaluation, the browser export and the separate AQI and Seoul analyses. It also distinguishes the historical time-shift simulation from the live forecast comparison.
+
 ## Figures
 
 | Figure | What it shows | Source table |

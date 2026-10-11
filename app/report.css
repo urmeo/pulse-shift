@@ -105,6 +105,34 @@ figcaption {
   border: 1px solid var(--border);
   border-radius: 12px;
 }
+.pipeline-steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.pipeline-steps li {
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.pipeline-steps h3 {
+  margin: 0 0 12px;
+  font-size: 1.05rem;
+}
+.pipeline-steps h3 span {
+  margin-right: 8px;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.pipeline-steps p {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+.pipeline-steps p:last-child { margin-bottom: 0; }
 .table-scroll {
   overflow-x: auto;
   border: 1px solid var(--border);
@@ -160,6 +188,7 @@ footer {
   }
   .metrics div { padding: 16px; }
   .metrics strong { font-size: 1.6rem; }
+  .pipeline-steps { grid-template-columns: 1fr; }
   .links { grid-template-columns: 1fr; }
   th, td { padding: 10px 12px; }
 }

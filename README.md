@@ -10,9 +10,24 @@ PulseShift estimates the chance that hourly Capital Bikeshare rides fall below h
 
 ## Pipeline
 
-[![Public rides, weather and AQI form an hourly panel. A 2022–2023 training and 2024 test split produces research results. A separate all-years refit supplies the browser model.](results/figures/pipeline.svg)](results/figures/pipeline.svg)
+<a href="results/figures/pipeline.svg">
+  <picture>
+    <source media="(max-width: 640px)" srcset="results/figures/pipeline-mobile.svg">
+    <img src="results/figures/pipeline.svg" alt="Public data become an hourly panel with shared labels and 12 features. One path trains on 2022–2023 and tests on 2024. A separate all-active-hours refit supplies estimates from manual inputs or DC forecasts.">
+  </picture>
+</a>
 
-The historical test uses models trained on **2022–2023** and evaluated on **2024**. The browser uses separate coefficients refit on all **24,354 active hours**. Manual inputs or Open-Meteo weather and CAMS AQI forecasts supply its current conditions.
+| Stage | What happens | Recorded output |
+| --- | --- | --- |
+| Prepare | Join rides and weather by UTC hour; add DC calendar fields and CAMS AQI, with EPA daily fallback. | 26,288 hourly records and a [panel checksum](research/data/processed/panel.sha256) |
+| Define the target | Fit expected rides on 2022–2023. Keep expected counts ≥20; label actual counts below 50% of expected. Derive 12 weather, AQI and time features. | 24,354 active hours |
+| Evaluate | Fit five model variants on 16,150 hours from 2022–2023; test on 8,204 hours from 2024. | [Test predictions](results/tables/holdout_predictions.csv), curves and model scores |
+| Check uncertainty and scenarios | Resample whole test days for the unweighted model's intervals; vary features, labels and policy settings; simulate same-day shifts of up to three hours. | [Confidence intervals](results/tables/served_ci.csv), sensitivity tables and simulated recovery |
+| Refit and use | Fit a separate unweighted logistic model on all active hours. Export its scaler and coefficients; score manual inputs or a DC forecast. | [Browser model](app/model.js) and next-24-hour daytime comparisons |
+
+Expected-ride labels use the **2022–2023 baseline in both paths**. The all-years browser refit does not redefine that baseline. The 2024 test scores describe the historical model fit.
+
+AQI associations use applicable records across 2022–2024. Seoul starts from its own dataset and fits city-specific coefficients. The [full pipeline guide](docs/pipeline.md) traces these separate analyses, preprocessing limits and code paths.
 
 ## Historical results
 
