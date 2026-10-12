@@ -1,6 +1,6 @@
 # Pipeline and analysis steps
 
-[Project](../README.md) · [Visual report](https://urmeo.github.io/pulse-shift/results/) · [Run the analysis](development.md) · [Figma source](https://www.figma.com/design/yhY22TCHa8m8mhBi1Z4RCw?node-id=2-2)
+[Project](../README.md) · [Visual report](https://urmeo.github.io/pulse-shift/results/) · [Figma source](https://www.figma.com/design/yhY22TCHa8m8mhBi1Z4RCw?node-id=2-2)
 
 The main flow prepares DC records, defines low-demand hours and refits the browser model. Exported parameters score new manual or forecast conditions. Historical evaluation, simulated time shifts, AQI and smoke analyses, and a separate Seoul refit form the research checks below that flow.
 
@@ -101,7 +101,7 @@ The [AQI analysis](../research/pulseshift/airquality.py) is observational. Diffe
 
 ## Reproduce and inspect
 
-The [development guide](development.md) lists the setup and commands. The main stages map to these scripts:
+The main stages use these scripts:
 
 | Script | Output |
 | --- | --- |

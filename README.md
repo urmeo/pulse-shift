@@ -11,7 +11,7 @@ PulseShift estimates the chance that hourly Capital Bikeshare rides fall below h
 
 [Pipeline details](docs/pipeline.md) · [Editable Figma source](https://www.figma.com/design/yhY22TCHa8m8mhBi1Z4RCw?node-id=2-2)
 
-[Open the app](https://urmeo.github.io/pulse-shift/) · [Visual report](https://urmeo.github.io/pulse-shift/results/) · [Data and methods](results/README.md) · [Reproduce the analysis](docs/development.md)
+[Open the app](https://urmeo.github.io/pulse-shift/) · [Visual report](https://urmeo.github.io/pulse-shift/results/) · [Data and methods](results/README.md)
 
 | AUROC | Average precision | Brier score | Active DC hours |
 | ---: | ---: | ---: | ---: |
@@ -131,6 +131,6 @@ From the repository root:
 python3 -m http.server 8000
 ```
 
-Open [localhost:8000](http://localhost:8000) for the app or [localhost:8000/results/](http://localhost:8000/results/) for the visual report. Manual estimates run locally. Forecast loading requires internet access. See the [development guide](docs/development.md) for Python setup and analysis commands.
+Open [localhost:8000](http://localhost:8000) for the app or [localhost:8000/results/](http://localhost:8000/results/) for the visual report. Manual estimates run locally. Forecast loading requires internet access.
 
 Author and sole contributor: [urme](https://github.com/urmeo) · [MIT license](LICENSE)

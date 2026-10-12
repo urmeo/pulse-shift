@@ -1,6 +1,6 @@
 # Results and methods
 
-[Open the visual report](https://urmeo.github.io/pulse-shift/results/) · [Return to the project](../README.md) · [Reproduce the results](../docs/development.md)
+[Open the visual report](https://urmeo.github.io/pulse-shift/results/) · [Return to the project](../README.md)
 
 The figures and tables in this directory come from the committed DC panel and the separate Seoul analysis. The report presents historical evaluation, observational associations and simulated policy outcomes. Browser coefficients are refit separately on all 24,354 active DC hours after evaluation.
 
