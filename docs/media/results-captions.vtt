@@ -5,15 +5,15 @@ Unweighted model: scores from the 2024 test.
 
 00:03.300 --> 00:06.800
 Low demand: rides below half the expected count.
-Baseline: 2022–2023.
+2022–2023 baseline; browser refit on all active hours.
 
 00:07.600 --> 00:12.100
-Train on 2022–2023; test on 2024.
-The browser uses a separate all-years refit.
+Fixed model: scale 12 features, then score.
+Forecast-only limits govern hour selection.
 
 00:12.900 --> 00:16.400
-Probabilities overestimate the 2024 event rate.
-Forecast selection applies input, heat and AQI limits.
+Separate checks: historical test, simulated shifts,
+AQI associations and a city-specific Seoul refit.
 
 00:17.200 --> 00:20.200
 Compare five models on 8,204 test hours from 2024.

@@ -5,11 +5,11 @@ PulseShift estimates the chance that hourly Capital Bikeshare rides fall below h
 <a href="results/figures/pipeline.svg">
   <picture>
     <source media="(max-width: 640px)" srcset="results/figures/pipeline-mobile.svg">
-    <img src="results/figures/pipeline.svg" alt="DC data become labeled hours and 12 features. Separate branches fit historical models on 2022–2023 and test on held-out 2024 data, or refit the browser model on all active hours. New conditions produce a probability; a forecast-only gate applies complete-input, heat and AQI limits before selecting an hour.">
+    <img src="results/figures/pipeline.svg" alt="DC records become labeled hours for the browser model refit. Fixed parameters score manual conditions or forecasts; forecast-only eligibility rules limit hour selection. Separate research checks cover the 2024 historical test, simulated time shifts, AQI and smoke associations, and an independent Seoul refit.">
   </picture>
 </a>
 
-The historical test and browser refit use the same 2022–2023 target baseline. [Pipeline details and code references](docs/pipeline.md).
+The historical test and browser refit use the same 2022–2023 target baseline. [Pipeline details and code references](docs/pipeline.md) · [Editable Figma source](https://www.figma.com/design/yhY22TCHa8m8mhBi1Z4RCw?node-id=2-2).
 
 [Open the app](https://urmeo.github.io/pulse-shift/) · [Charts and results](https://urmeo.github.io/pulse-shift/results/) · [Data and methods](results/README.md) · [Reproduce the analysis](docs/development.md)
 

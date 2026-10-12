@@ -29,11 +29,11 @@
     <p class="note">Test scores use $train_hours training hours from 2022–2023 and $test_hours test hours from 2024. The app uses a separate refit on all three years.</p>
 
     <section aria-labelledby="pipeline-title">
-      <h2 id="pipeline-title">From public data to browser estimates</h2>
+      <h2 id="pipeline-title">Project pipeline</h2>
       <a href="figures/pipeline.svg">
         <picture>
           <source media="(max-width: 640px)" srcset="figures/pipeline-mobile.svg">
-          <img class="pipeline" src="figures/pipeline.svg" alt="Public rides, weather and AQI form an hourly panel and a low-demand target. One path trains on 2022–2023 and evaluates on 2024. The other refits on all active hours and exports the browser model.">
+          <img class="pipeline" src="figures/pipeline.svg" alt="DC records become labeled hours for the browser refit. Fixed parameters score manual conditions or forecasts; eligible forecast hours are compared. Separate research checks cover historical evaluation, simulated shifts, AQI and smoke, and a city-specific Seoul refit.">
         </picture>
       </a>
       <ol class="pipeline-steps" role="list">
@@ -47,16 +47,18 @@
           <p>This gives $active_hours active hours with 12 model features.</p>
         </li>
         <li>
-          <h3><span aria-hidden="true">03</span> Evaluate the models</h3>
-          <p>Fit five models on $train_hours hours in 2022–2023; evaluate on $test_hours hours in 2024. Report curves, scores and whole-day bootstrap intervals for the unweighted model, with sensitivity analyses.</p>
-        </li>
-        <li>
-          <h3><span aria-hidden="true">04</span> Refit for the browser</h3>
-          <p>Refit unweighted logistic regression on all $active_hours active hours and export its 12-feature coefficients. Enter conditions manually or compare forecasts for the next 24 hours, 06:00–21:00 DC time.</p>
+          <h3><span aria-hidden="true">03</span> Refit and score in the browser</h3>
+          <p>Refit unweighted logistic regression on all $active_hours active hours and export the scaler and 12-feature coefficients. The browser derives features and applies these fixed parameters to manual conditions or forecasts.</p>
+          <p>Manual input produces one estimate. Forecasts compare hours in the next 24 hours, 06:00–21:00 DC time, and select the lowest eligible probability.</p>
           <p>Forecast comparisons exclude hours with missing inputs, heat index ≥103°F or AQI ≥150.</p>
         </li>
+        <li>
+          <h3><span aria-hidden="true">04</span> Check the research results</h3>
+          <p>Fit five models on $train_hours hours in 2022–2023; evaluate on $test_hours hours in 2024. Report curves, scores and whole-day bootstrap intervals for the unweighted model, with sensitivity analyses.</p>
+          <p>Simulate same-day shifts of up to three hours using historical unweighted predictions. Study AQI and smoke associations in the 2022–2024 DC records. Refit separately on Seoul data with 10 features and a 75/25 whole-date split within each season.</p>
+        </li>
       </ol>
-      <p class="note">AQI associations use the 2022–2024 records. Seoul uses a separate city-specific refit. See the <a href="https://github.com/urmeo/pulse-shift/blob/main/docs/pipeline.md">full pipeline and code references</a>.</p>
+      <p class="note">These research checks use separate fits and analyses. The historical unweighted model overestimates probabilities; live forecast accuracy and actual ride recovery remain unmeasured. See the <a href="https://github.com/urmeo/pulse-shift/blob/main/docs/pipeline.md">full pipeline and code references</a>.</p>
     </section>
 
     <section aria-labelledby="evaluation-title">

@@ -2,16 +2,16 @@
 
 [Project](../README.md) · [Visual report](https://urmeo.github.io/pulse-shift/results/) · [Run the analysis](development.md) · [Figma source](https://www.figma.com/design/yhY22TCHa8m8mhBi1Z4RCw?node-id=2-2)
 
-The DC pipeline has shared preparation followed by two separate model paths. Historical evaluation fits models on 2022–2023 and tests on 2024. The browser model refits all active hours after evaluation. Other analyses use either the full DC panel or a separate Seoul dataset, as described below.
+The main flow prepares DC records, defines low-demand hours and refits the browser model. Exported parameters score new manual or forecast conditions. Historical evaluation, simulated time shifts, AQI and smoke analyses, and a separate Seoul refit form the research checks below that flow.
 
 <a href="../results/figures/pipeline.svg">
   <picture>
     <source media="(max-width: 640px)" srcset="../results/figures/pipeline-mobile.svg">
-    <img src="../results/figures/pipeline.svg" alt="Prepared DC hours branch into historical evaluation and a separate browser model refit. Held-out 2024 data enter the historical test directly. The browser scores new conditions, with a forecast-only gate for complete inputs and the study's heat and AQI limits.">
+    <img src="../results/figures/pipeline.svg" alt="DC records become labeled hours for the browser model refit. Fixed parameters score manual conditions or forecasts; forecast-only eligibility rules limit hour selection. Separate research checks cover the 2024 historical test, simulated time shifts, AQI and smoke associations, and an independent Seoul refit.">
   </picture>
 </a>
 
-Training data fit the historical models; a separate edge sends held-out 2024 hours to the test. The browser path refits all active hours, then scores new conditions with fixed coefficients. The evidence card reports the unweighted historical model's AUROC and whole-day interval, alongside its probability overestimation. The dashed gate applies only to forecast hour selection, requiring complete inputs and the study's heat and AQI limits.
+The browser refit supplies the fixed scaler and coefficients directly to scoring. The dashed branch applies only to forecast hour selection: compare complete daytime hours under the study's heat and AQI limits, then choose the lowest estimated probability. The research checks retain their own inputs and evaluation conditions. They do not update the browser model. Historical probability overestimation, unmeasured live forecast accuracy and simulated time-shift recovery remain explicit limits.
 
 ## 1. Assemble the DC panel
 
