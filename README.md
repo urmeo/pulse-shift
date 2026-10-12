@@ -110,14 +110,6 @@ The Seoul analysis fits city-specific coefficients and holds out the **latest 25
 | Research | Python, NumPy, pandas, scikit-learn, SciPy and Matplotlib |
 | Browser | HTML, CSS and JavaScript; no runtime packages |
 
-The repository includes the processed DC panel, its checksum, predictions and generated figures. [Summary metadata](results/tables/summary.json) record source hashes and runtime versions. The [methods guide](results/README.md) explains label construction, data coverage and evaluation conditions.
-
-## Limitations and operating conditions
-
-- The target is aggregate bike-share demand. Individual activity and health outcomes were not measured. Live forecast accuracy and actual time-shift benefits remain unmeasured.
-- Coarse CAMS data, daily AQI fallback, missing hours, changes over time and observational confounding limit interpretation.
-- Forecast comparisons use **06:00–21:00 DC time** within the next 24 hours. Hours with missing inputs, heat index **≥103°F** or AQI **≥150** are excluded. These are study thresholds; follow official advisories.
-
 Method references: [calibration](https://doi.org/10.1186/s12916-019-1466-7), [precision–recall evaluation](https://doi.org/10.1371/journal.pone.0118432), [decision curves](https://doi.org/10.1177/0272989X06295361), and the [Seoul Bike Sharing Demand dataset](https://doi.org/10.24432/C5F62R).
 
 Author and sole contributor: [urme](https://github.com/urmeo). The [MIT license](LICENSE) covers the code; data providers' terms apply separately.
