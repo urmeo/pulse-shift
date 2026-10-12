@@ -22,9 +22,15 @@ body {
 }
 
 .app {
-  max-width: 640px;
+  max-width: 880px;
   margin: 0 auto;
   padding: 40px 20px 60px;
+}
+
+.app > header, .app > .panel, .app > .result, .app > footer, .app > .hint {
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 header h1 {
@@ -177,6 +183,63 @@ footer {
 footer a {
   color: var(--accent);
   text-decoration: none;
+}
+
+.pipeline-section {
+  margin-top: 48px;
+  scroll-margin-top: 24px;
+}
+
+.pipeline-section h2 { font-size: 1.5rem; }
+.pipeline-section h3 { font-size: 1.05rem; }
+.pipeline-section figure { margin: 0; }
+.pipeline-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 14px;
+}
+.pipeline-section figcaption {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.pipeline-section details {
+  margin-top: 20px;
+  padding: 16px 20px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+.pipeline-section summary {
+  color: var(--accent);
+  cursor: pointer;
+}
+.pipeline-section a { color: var(--accent); }
+.pipeline-section summary:focus-visible, a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+.pipeline-section table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.pipeline-section caption {
+  text-align: left;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.pipeline-section th, .pipeline-section td {
+  border-bottom: 1px solid var(--line);
+  padding: 8px;
+  text-align: left;
+}
+.pipeline-section th:last-child, .pipeline-section td { text-align: right; }
+.pipeline-links { font-size: 0.9rem; }
+
+@media (max-width: 640px) {
+  .pipeline-section figure { max-width: 360px; margin-inline: auto; }
 }
 
 @media (max-width: 480px) {
