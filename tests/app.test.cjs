@@ -113,13 +113,14 @@ function fetchForecast(data) {
   });
 }
 
-test("published app and results pages reference existing local assets", () => {
-  for (const entry of ["index.html", "results/index.html"]) {
+test("published pages reference existing desktop, mobile and video assets", () => {
+  for (const entry of ["index.html", "results/index.html", "docs/demos/index.html"]) {
     const htmlPath = path.join(repoRoot, entry);
     const html = fs.readFileSync(htmlPath, "utf8");
-    const references = [...html.matchAll(/<(?:script|link|img)\b[^>]*(?:src|href)="([^"]+)"/g)]
+    const references = [...html.matchAll(/<(?:script|link|img|source|track|video)\b[^>]*?\b(?:src|href|srcset|poster)="([^"]+)"/g)]
       .map((match) => match[1])
-      .filter((reference) => !/^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(reference));
+      .filter((reference) => !/^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(reference))
+      .flatMap((reference) => reference.split(",").map((source) => source.trim().split(/\s+/)[0]));
     assert.ok(references.length > 0, `${entry} must load local assets`);
     for (const reference of references) {
       const asset = path.resolve(path.dirname(htmlPath), reference.split(/[?#]/, 1)[0]);
@@ -216,6 +217,39 @@ test("smoke and measured visibility are independent model inputs", () => {
   elements.visibility.value = "8.5";
   assert.equal(run("features(readInputs()).visibility_mi"), 8.5);
   assert.equal(run("features(readInputs()).smoke_haze"), 1);
+});
+
+test("corrected fields lose stale invalid markers while another field is invalid", () => {
+  const { elements, run } = makeApp();
+  elements.aqi.value = "";
+  run("update()");
+  assert.equal(elements.aqi.attributes["aria-invalid"], "true");
+  elements.temp.value = "";
+  elements.aqi.value = "60";
+  elements.aqi.listeners.input();
+  assert.equal(elements.temp.attributes["aria-invalid"], "true");
+  assert.equal(elements.aqi.attributes["aria-invalid"], "false");
+  assert.equal(elements.result.hidden, true);
+  assert.match(elements.error.textContent, /temp/);
+  elements.temp.value = "85";
+  elements.temp.listeners.input();
+  assert.equal(elements.result.hidden, false);
+  assert.equal(elements.error.textContent, "");
+});
+
+test("missing forecast bodies show a useful error and preserve manual conditions", async () => {
+  for (const missing of ["weather", "air"]) {
+    const data = makeForecast();
+    data[missing] = null;
+    const { elements, run } = makeApp(fetchForecast(data));
+    await run("liveWeather()");
+    assert.match(elements.error.textContent, /Unexpected forecast units or fields/);
+    assert.equal(elements.temp.value, "85");
+    assert.equal(elements.aqi.value, "60");
+    assert.equal(elements.besthour.textContent, "");
+    assert.equal(elements.live.disabled, false);
+    assert.equal(elements.live.textContent, "Load DC forecast");
+  }
 });
 
 test("HTTP error responses are rejected before parsing", async () => {

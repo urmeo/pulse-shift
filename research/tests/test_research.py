@@ -8,7 +8,21 @@ import pytest
 
 from pulseshift import airquality, decision, equity, provenance
 from pulseshift.evaluation import bootstrap_ci, expected_calibration_error, metrics
+from pulseshift.models import temporal_split
 from scripts.validate_seoul import label_panel, season_day_split
+
+
+def test_temporal_split_rejects_train_test_overlap():
+    frame = pd.DataFrame({"year": [2022, 2023, 2024]})
+    with pytest.raises(ValueError, match="must not overlap"):
+        temporal_split(frame, train_years=(2023, 2024), test_year=2024)
+
+
+def test_temporal_split_keeps_requested_years_separate():
+    frame = pd.DataFrame({"year": [2022, 2023, 2024, 2025]})
+    train, test = temporal_split(frame, train_years=(2022, 2023), test_year=2024)
+    assert train["year"].tolist() == [2022, 2023]
+    assert test["year"].tolist() == [2024]
 
 
 def test_calibration_accepts_lists_and_includes_probability_endpoints():

@@ -1,6 +1,6 @@
 # Development
 
-Author and sole contributor: [urmeo](https://github.com/urmeo).
+Author and sole contributor: [urme](https://github.com/urmeo).
 
 ## Setup and checks
 
@@ -22,8 +22,6 @@ ruff format --check research/pulseshift research/scripts research/tests
 mypy research/pulseshift --ignore-missing-imports
 pip-audit --strict
 ```
-
-Test the behavior affected by a change. Keep code, visible text and documentation consistent. Describe what changed and how you checked it in the pull request.
 
 ## Reproduce the results
 
@@ -71,7 +69,7 @@ Preserve dataset details, evaluation conditions and limitations when describing 
 
 ## Commits
 
-Use a short commit message that names the work, such as `updated readme`, `updated results` or `updated work`. Keep `urmeo` as the author. Do not add assistant or co-author attribution.
+Use a short commit message that names the work, such as `updated code`, `updated readme`, `updated docs` or `updated results`. Keep commits on the `urmeo` account with display name `urme`. Do not add assistant or co-author attribution.
 
 ## Security
 

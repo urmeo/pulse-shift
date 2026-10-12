@@ -18,6 +18,8 @@ def temporal_split(
     train_years: tuple[int, ...] = config.TRAIN_YEARS,
     test_year: int = config.TEST_YEAR,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
+    if test_year in train_years:
+        raise ValueError("training and test years must not overlap")
     train = panel[panel["year"].isin(train_years)].reset_index(drop=True)
     test = panel[panel["year"] == test_year].reset_index(drop=True)
     return train, test

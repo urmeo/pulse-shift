@@ -2,7 +2,7 @@
 
 [Open the visual report](https://urmeo.github.io/pulse-shift/results/) · [Return to the project](../README.md) · [Reproduce the results](../docs/development.md)
 
-The figures and tables in this directory come from the committed DC panel and the separate Seoul analysis. The report presents historical evaluation, observational associations and simulated policy outcomes. Browser coefficients are refit separately on all active DC hours.
+The figures and tables in this directory come from the committed DC panel and the separate Seoul analysis. The report presents historical evaluation, observational associations and simulated policy outcomes. Browser coefficients are refit separately on all 24,354 active DC hours after evaluation.
 
 The [pipeline guide](../docs/pipeline.md) traces data preparation, target construction, historical evaluation, the browser export and the separate AQI and Seoul analyses. It also distinguishes the historical time-shift simulation from the live forecast comparison.
 
@@ -32,8 +32,6 @@ The [pipeline guide](../docs/pipeline.md) traces data preparation, target constr
 | AQI coverage | 80.3% CAMS hourly values; EPA daily AQI for the remaining hours |
 
 The panel combines Capital Bikeshare rides, NOAA weather from Reagan National Airport (DCA), and AQI. An hour has low demand when rides fall below **50% of expected rides**. Expected rides use the 2022–2023 median for each season, weekday/weekend group and hour, adjusted by training-year ride volume. The 2024 target uses the 2023 volume adjustment.
-
-The browser model is refit on all 24,354 active hours after evaluation. Its coefficients are separate from the historical holdout models reported below.
 
 ## Historical evaluation
 
@@ -70,6 +68,6 @@ These are scenario estimates, not observed ride recovery. The [monthly figure](f
 
 The [summary metadata](tables/summary.json) record source hashes, runtime versions and the panel checksum. All generated figures are in [figures/](figures/), and predictions, sensitivity analyses and metadata are in [tables/](tables/).
 
-[View the browser app](figures/pulseshift-ui.jpg).
+[Open the browser app](https://urmeo.github.io/pulse-shift/) · [View the app screenshot](figures/pulseshift-ui.jpg).
 
 Method references: [calibration](https://doi.org/10.1186/s12916-019-1466-7), [precision–recall evaluation](https://doi.org/10.1371/journal.pone.0118432), [decision curves](https://doi.org/10.1177/0272989X06295361), and the [Seoul Bike Sharing Demand dataset](https://doi.org/10.24432/C5F62R).

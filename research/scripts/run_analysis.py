@@ -332,17 +332,18 @@ def aqi_identification(active_hours: pd.DataFrame) -> dict:
     }
 
 
-def aqi_coefficient(active_hours: pd.DataFrame) -> list:
+def aqi_coefficient(active_hours: pd.DataFrame, browser_model: Pipeline) -> list:
     """Compare logistic AQI coefficients for hourly and daily exposures."""
     aqi_index = MODEL_FEATURES.index("aqi")
-    hourly = fit_logistic(active_hours, balanced=False)
     daily = fit_logistic(
         active_hours.assign(aqi=active_hours["aqi_epa_daily"]), balanced=False
     )
     rows = [
         {
             "aqi_source": "hourly (served)",
-            "std_coefficient": float(hourly.named_steps["clf"].coef_[0][aqi_index]),
+            "std_coefficient": float(
+                browser_model.named_steps["clf"].coef_[0][aqi_index]
+            ),
         },
         {
             "aqi_source": "daily",
@@ -515,7 +516,7 @@ def main() -> None:
     step("AQI identification ladder (day-clustered bootstrap)")
     aqi = aqi_identification(active_hours)
     step("AQI coefficient (hourly vs daily)")
-    aqi_coefficients = aqi_coefficient(active_hours)
+    aqi_coefficients = aqi_coefficient(active_hours, browser_model)
     step("feature ablation")
     ablation = feature_ablation(train, test)
     step("subgroups")

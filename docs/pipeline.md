@@ -112,4 +112,4 @@ The [development guide](development.md) lists the setup and commands. The main s
 
 Generated research metadata record the source commit, source hashes, runtime and panel checksum. Presentation changes can rebuild the report from the saved summary without refitting the models. Existing numerical artifacts retain the provenance of their original analysis run.
 
-Author and sole contributor: [urmeo](https://github.com/urmeo).
+Author and sole contributor: [urme](https://github.com/urmeo).

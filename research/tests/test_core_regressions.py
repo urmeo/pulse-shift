@@ -1,12 +1,14 @@
 """Heat calculations, recommendation ordering, and panel integrity."""
 
 import json
+import shutil
+import subprocess
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from pulseshift import __version__, config, ingest, panel, ram, safety
+from pulseshift import __version__, config, ingest, panel, provenance, ram, safety
 from pulseshift.features import heat_index_f
 
 
@@ -140,6 +142,45 @@ def test_failed_panel_write_preserves_previous_file_and_checksum(tmp_path, monke
     assert path.read_bytes() == first
     panel.verify_checksum(path, checksum)
     assert not list(tmp_path.glob("*.part"))
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="Git is unavailable")
+def test_provenance_marks_deleted_source_as_dirty(tmp_path, monkeypatch):
+    root = tmp_path / "research"
+    package = root / "pulseshift"
+    package.mkdir(parents=True)
+    (package / "kept.py").write_text("value = 1\n")
+    deleted = package / "deleted.py"
+    deleted.write_text("value = 2\n")
+    panel_path = tmp_path / "panel.csv.gz"
+    panel_path.write_bytes(b"sample input")
+    for arguments in [
+        ["init", "--quiet"],
+        ["add", "research"],
+        [
+            "-c",
+            "user.name=urme",
+            "-c",
+            "user.email=148221893+urmeo@users.noreply.github.com",
+            "-c",
+            "commit.gpgsign=false",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "commit",
+            "--quiet",
+            "-m",
+            "fixture",
+        ],
+    ]:
+        subprocess.run(
+            ["git", "-C", str(tmp_path), *arguments],
+            check=True,
+            capture_output=True,
+        )
+    monkeypatch.setattr(config, "ROOT", root)
+    assert provenance.artifact_provenance(panel_path)["source_dirty"] is False
+    deleted.unlink()
+    assert provenance.artifact_provenance(panel_path)["source_dirty"] is True
 
 
 def test_hourly_aqi_uses_utc_and_bypasses_legacy_local_cache(tmp_path, monkeypatch):

@@ -48,8 +48,11 @@ def _download(url: str, dest: str | Path) -> Path:
 def _write_csv(frame: pd.DataFrame, cache: Path) -> None:
     cache.parent.mkdir(parents=True, exist_ok=True)
     temporary = cache.with_name(cache.name + ".part")
-    frame.to_csv(temporary, index=False)
-    temporary.replace(cache)
+    try:
+        frame.to_csv(temporary, index=False)
+        temporary.replace(cache)
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
 def _to_numeric(series: pd.Series) -> pd.Series:

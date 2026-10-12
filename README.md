@@ -1,7 +1,5 @@
 # PulseShift
 
-**Weather, air quality and DC-area bike-share demand.**
-
 PulseShift estimates the chance that hourly Capital Bikeshare rides fall below half their expected count. A 12-feature logistic regression model runs in the browser. Enter conditions manually or load a DC forecast to compare daytime hours. This is a research prototype for aggregate network demand.
 
 [Open the app](https://urmeo.github.io/pulse-shift/) · [Charts and results](https://urmeo.github.io/pulse-shift/results/) · [Data and methods](results/README.md) · [Reproduce the analysis](docs/development.md)
@@ -12,6 +10,18 @@ PulseShift estimates the chance that hourly Capital Bikeshare rides fall below h
     <img src="docs/media/app-desktop.png" alt="PulseShift with manual weather and AQI inputs, the estimated chance of low bike-share demand, and the model's operating limits.">
   </picture>
 </a>
+
+## Run locally
+
+From the repository root:
+
+```bash
+python3 -m http.server 8000
+```
+
+Open [localhost:8000](http://localhost:8000) for the app or [localhost:8000/results/](http://localhost:8000/results/) for the visual report. Manual estimates run locally. Forecast loading requires internet access.
+
+To reproduce the research, follow the [development guide](docs/development.md). It covers Python setup, checks, analysis scripts and panel rebuilding.
 
 ## Video walkthroughs
 
@@ -36,7 +46,7 @@ The app recording uses manual conditions. The results recording shows historical
 | Stage | What happens | Recorded output |
 | --- | --- | --- |
 | Prepare | Join rides and weather by UTC hour; add DC calendar fields and CAMS AQI, with EPA daily fallback. | 26,288 hourly records and a [panel checksum](research/data/processed/panel.sha256) |
-| Define the target | Fit expected rides on 2022–2023. Keep expected counts ≥20; label actual counts below 50% of expected. Derive 12 weather, AQI and time features. | 24,354 active hours |
+| Define the target | Fit expected rides by season, weekday/weekend group and hour on 2022–2023. Keep expected counts ≥20; label actual counts below 50% of expected. Derive 12 weather, AQI and time features. | 24,354 active hours |
 | Evaluate | Fit five model variants on 16,150 hours from 2022–2023; test on 8,204 hours from 2024. | [Test predictions](results/tables/holdout_predictions.csv), curves and model scores |
 | Check uncertainty and scenarios | Resample whole test days for the unweighted model's intervals; vary features, labels and policy settings; simulate same-day shifts of up to three hours. | [Confidence intervals](results/tables/served_ci.csv), sensitivity tables and simulated recovery |
 | Refit and use | Fit a separate unweighted logistic model on all active hours. Export its scaler and coefficients; score manual inputs or a DC forecast. | [Browser model](app/model.js) and next-24-hour daytime comparisons |
@@ -47,7 +57,7 @@ AQI associations use applicable records across 2022–2024. Seoul starts from it
 
 ## Historical results
 
-**16,150 training hours → 8,204 test hours.** Low demand means rides below **50% of the expected count** for the season, weekday/weekend group and hour. Expected counts for the 2024 test use training data only. Training and evaluation include hours with at least 20 expected rides.
+**2022–2023 training → 2024 test.** All five models use the same 16,150 training hours, 8,204 test hours and training-fitted target described above.
 
 | Model | AUROC ↑ | Average precision ↑ | Brier score ↓ | Calibration error (ECE) ↓ |
 | --- | ---: | ---: | ---: | ---: |
@@ -114,30 +124,6 @@ The Seoul analysis fits city-specific coefficients and holds out the **latest 25
 
 The repository includes the processed DC panel, its checksum, predictions and generated figures. [Summary metadata](results/tables/summary.json) record source hashes and runtime versions. The [methods guide](results/README.md) explains label construction, data coverage and evaluation conditions.
 
-## Run locally
-
-From the repository root:
-
-```bash
-python3 -m http.server 8000
-```
-
-Open [localhost:8000](http://localhost:8000) for the app or [localhost:8000/results/](http://localhost:8000/results/) for the visual report. Manual estimates run locally. Forecast loading requires internet access.
-
-The research is checked on Python **3.12, 3.13 and 3.14**. Create an environment and run the scripts against the committed panel:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r research/requirements.txt
-cd research
-PYTHONPATH=. python scripts/run_analysis.py
-PYTHONPATH=. python scripts/train_model.py
-PYTHONPATH=. python scripts/validate_seoul.py
-```
-
-The Seoul script downloads the public UCI archive on its first run. See the [development guide](docs/development.md) for checks, panel rebuilding and generated file paths.
-
 ## Limitations and operating conditions
 
 - The target is aggregate bike-share demand. Individual activity and health outcomes were not measured. Live forecast accuracy and actual time-shift benefits remain unmeasured.
@@ -146,4 +132,4 @@ The Seoul script downloads the public UCI archive on its first run. See the [dev
 
 Method references: [calibration](https://doi.org/10.1186/s12916-019-1466-7), [precision–recall evaluation](https://doi.org/10.1371/journal.pone.0118432), [decision curves](https://doi.org/10.1177/0272989X06295361), and the [Seoul Bike Sharing Demand dataset](https://doi.org/10.24432/C5F62R).
 
-Author and sole contributor: [urmeo](https://github.com/urmeo). The [MIT license](LICENSE) covers the code; data providers' terms apply separately.
+Author and sole contributor: [urme](https://github.com/urmeo). The [MIT license](LICENSE) covers the code; data providers' terms apply separately.

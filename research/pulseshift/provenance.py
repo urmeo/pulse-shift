@@ -18,12 +18,9 @@ def file_sha256(path: Path) -> str:
 
 def artifact_provenance(panel_path: Path | None = None) -> dict:
     repository_root = config.ROOT.parent
+    source_patterns = ("pulseshift/*.py", "scripts/*.py", "templates/*.html")
     source_files = sorted(
-        [
-            *config.ROOT.glob("pulseshift/*.py"),
-            *config.ROOT.glob("scripts/*.py"),
-            *config.ROOT.glob("templates/*.html"),
-        ]
+        path for pattern in source_patterns for path in config.ROOT.glob(pattern)
     )
     source_hashes = {
         str(path.relative_to(repository_root)): file_sha256(path)
@@ -41,7 +38,13 @@ def artifact_provenance(panel_path: Path | None = None) -> dict:
             stderr=subprocess.DEVNULL,
         ).strip()
         status = subprocess.check_output(
-            ["git", "status", "--porcelain", "--", *source_hashes],
+            [
+                "git",
+                "status",
+                "--porcelain",
+                "--",
+                *(f"{config.ROOT.name}/{pattern}" for pattern in source_patterns),
+            ],
             cwd=repository_root,
             text=True,
             stderr=subprocess.DEVNULL,

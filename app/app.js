@@ -74,32 +74,28 @@ function riskClass(probability) {
   return "severe";
 }
 
-function readNumber(id) {
-  const input = element(id);
-  const value = input.valueAsNumber;
-  const valid = Number.isFinite(value) && input.checkValidity();
-  input.setAttribute("aria-invalid", String(!valid));
-  if (!valid) {
-    const label = input.closest("label").firstChild.textContent.trim();
-    throw new Error(`Enter a valid value for ${label}.`);
-  }
-  return value;
-}
-
 function readInputs() {
   const hour = Number(element("hour").value);
   if (!Number.isInteger(hour) || hour < 0 || hour > 23) throw new Error("Select a start hour.");
-  return {
-    temp: readNumber("temp"),
-    humidity: readNumber("humidity"),
-    aqi: readNumber("aqi"),
-    wind: readNumber("wind"),
-    precip: readNumber("precip"),
-    visibility: readNumber("visibility"),
+  const values = {
     hour,
     weekend: element("weekend").checked,
     smoke: element("smoke").checked,
   };
+  let firstInvalidInput = null;
+  for (const id of ["temp", "humidity", "aqi", "wind", "precip", "visibility"]) {
+    const input = element(id);
+    const value = input.valueAsNumber;
+    const valid = Number.isFinite(value) && input.checkValidity();
+    input.setAttribute("aria-invalid", String(!valid));
+    values[id] = value;
+    if (!valid && !firstInvalidInput) firstInvalidInput = input;
+  }
+  if (firstInvalidInput) {
+    const label = firstInvalidInput.closest("label").firstChild.textContent.trim();
+    throw new Error(`Enter a valid value for ${label}.`);
+  }
+  return values;
 }
 
 function update() {
@@ -134,10 +130,10 @@ function dcHourWeekend(epochSeconds) {
 }
 
 function forecastInputs(weather, air, smoke, now = Date.now()) {
-  const weatherUnits = weather.hourly_units;
-  const weatherHours = weather.hourly;
-  const airUnits = air.hourly_units;
-  const airHours = air.hourly;
+  const weatherUnits = weather?.hourly_units;
+  const weatherHours = weather?.hourly;
+  const airUnits = air?.hourly_units;
+  const airHours = air?.hourly;
   if (!weatherUnits || weatherUnits.time !== "unixtime" || weatherUnits.temperature_2m !== "°F" ||
       weatherUnits.relative_humidity_2m !== "%" || !["mp/h", "mph"].includes(weatherUnits.wind_speed_10m) ||
       weatherUnits.precipitation !== "inch" || !["m", "ft"].includes(weatherUnits.visibility) ||
