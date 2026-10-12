@@ -125,12 +125,10 @@ The app recording uses manual conditions. The results recording shows historical
 
 ## Run locally
 
-From the repository root:
-
 ```bash
+git clone https://github.com/urmeo/pulse-shift.git
+cd pulse-shift
 python3 -m http.server 8000
 ```
-
-Open [localhost:8000](http://localhost:8000) for the app or [localhost:8000/results/](http://localhost:8000/results/) for the visual report. Manual estimates run locally. Forecast loading requires internet access.
 
 Author and sole contributor: [urme](https://github.com/urmeo) · [MIT license](LICENSE)
