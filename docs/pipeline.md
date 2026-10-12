@@ -1,6 +1,6 @@
 # Pipeline and analysis steps
 
-[Project](../README.md) · [Visual report](https://urmeo.github.io/pulse-shift/results/) · [Run the analysis](development.md)
+[Project](../README.md) · [Visual report](https://urmeo.github.io/pulse-shift/results/) · [Run the analysis](development.md) · [Figma source](https://www.figma.com/design/yhY22TCHa8m8mhBi1Z4RCw?node-id=2-2)
 
 The DC pipeline has shared preparation followed by two separate model paths. Historical evaluation fits models on 2022–2023 and tests on 2024. The browser model refits all active hours after evaluation. Other analyses use either the full DC panel or a separate Seoul dataset, as described below.
 

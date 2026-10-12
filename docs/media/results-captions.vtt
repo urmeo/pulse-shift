@@ -1,32 +1,36 @@
 WEBVTT
 
 00:00.000 --> 00:02.500
-2024 test: AUROC 0.936, average precision 0.488, Brier score 0.021.
+Unweighted model: scores from the 2024 test.
 
-00:03.300 --> 00:06.300
-Public rides, weather and AQI share hourly alignment,
-labels and 12 model features.
+00:03.300 --> 00:06.800
+Join public data by hour.
+Define active hours, labels and 12 features.
 
-00:07.100 --> 00:11.100
-Historical models fit 2022–2023 and test 2024.
-Browser parameters use a separate all-years refit.
+00:07.600 --> 00:12.100
+Evaluate 2024 using models fit on 2022–2023.
+Refit the browser model separately on all active hours.
 
-00:11.900 --> 00:14.900
-Five models compared on 8,204 test hours from 2024.
+00:12.900 --> 00:16.400
+Scores describe historical testing.
+Live forecast accuracy is unmeasured.
 
-00:15.700 --> 00:17.700
-ROC curves compare true-positive and false-positive rates.
+00:17.200 --> 00:20.200
+Compare five models on 8,204 test hours from 2024.
 
-00:18.500 --> 00:20.500
-Precision–recall curves show performance on the low-demand label.
+00:21.000 --> 00:23.000
+ROC: true-positive versus false-positive rates.
 
-00:21.300 --> 00:24.300
-Mean prediction: 6.88%. Observed rate: 2.46%.
-Probabilities overestimate the event rate.
+00:23.800 --> 00:25.800
+Precision–recall curves for the low-demand label.
 
-00:25.100 --> 00:27.100
-Model scores include discrimination, probability error and calibration.
+00:26.600 --> 00:29.600
+Mean prediction: 6.88%; observed rate: 2.46%.
+Probabilities overestimate low demand.
 
-00:27.900 --> 00:31.400
-Simulated recovery: 36.8% under full transfer;
-18.4% at an assumed 50% transfer efficiency.
+00:30.400 --> 00:32.400
+Compare the recorded model scores.
+
+00:33.200 --> 00:36.700
+Simulated recovery: 36.8% with full transfer;
+18.4% assuming 50% transfer efficiency.
