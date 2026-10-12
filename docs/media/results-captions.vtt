@@ -4,16 +4,16 @@ WEBVTT
 Unweighted model: scores from the 2024 test.
 
 00:03.300 --> 00:06.800
-Estimate low hourly demand in DC:
-rides below half the expected count.
+Low demand: rides below half the expected count.
+Baseline: 2022–2023.
 
 00:07.600 --> 00:12.100
-Two of five historical models are shown.
-The browser uses a separate refit.
+Train on 2022–2023; test on 2024.
+The browser uses a separate all-years refit.
 
 00:12.900 --> 00:16.400
-Forecast choices must meet study limits.
-Live accuracy is unmeasured.
+Probabilities overestimate the 2024 event rate.
+Forecast selection applies input, heat and AQI limits.
 
 00:17.200 --> 00:20.200
 Compare five models on 8,204 test hours from 2024.

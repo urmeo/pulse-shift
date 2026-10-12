@@ -2,6 +2,15 @@
 
 PulseShift estimates the chance that hourly Capital Bikeshare rides fall below half their expected count. A 12-feature logistic regression model runs in the browser. Enter conditions manually or load a DC forecast to compare daytime hours. This is a research prototype for aggregate network demand.
 
+<a href="results/figures/pipeline.svg">
+  <picture>
+    <source media="(max-width: 640px)" srcset="results/figures/pipeline-mobile.svg">
+    <img src="results/figures/pipeline.svg" alt="DC data become labeled hours and 12 features. Separate branches fit historical models on 2022–2023 and test on held-out 2024 data, or refit the browser model on all active hours. New conditions produce a probability; a forecast-only gate applies complete-input, heat and AQI limits before selecting an hour.">
+  </picture>
+</a>
+
+The historical test and browser refit use the same 2022–2023 target baseline. [Pipeline details and code references](docs/pipeline.md).
+
 [Open the app](https://urmeo.github.io/pulse-shift/) · [Charts and results](https://urmeo.github.io/pulse-shift/results/) · [Data and methods](results/README.md) · [Reproduce the analysis](docs/development.md)
 
 <a href="https://urmeo.github.io/pulse-shift/">
@@ -33,27 +42,6 @@ These silent recordings show the working interface. Select a preview to play the
 | [Watch the app video](https://urmeo.github.io/pulse-shift/docs/demos/#app) · [MP4](docs/media/app-walkthrough.mp4) | [Watch the results video](https://urmeo.github.io/pulse-shift/docs/demos/#results) · [MP4](docs/media/results-walkthrough.mp4) |
 
 The app recording uses manual conditions. The results recording shows historical evaluation and simulations; live forecast accuracy and actual ride recovery remain unmeasured.
-
-## Pipeline
-
-<a href="results/figures/pipeline.svg">
-  <picture>
-    <source media="(max-width: 640px)" srcset="results/figures/pipeline-mobile.svg">
-    <img src="results/figures/pipeline.svg" alt="Public data become an hourly panel with shared labels and 12 features. One path trains on 2022–2023 and tests on 2024. A separate all-active-hours refit supplies estimates from manual inputs or DC forecasts.">
-  </picture>
-</a>
-
-| Stage | What happens | Recorded output |
-| --- | --- | --- |
-| Prepare | Join rides and weather by UTC hour; add DC calendar fields and CAMS AQI, with EPA daily fallback. | 26,288 hourly records and a [panel checksum](research/data/processed/panel.sha256) |
-| Define the target | Fit expected rides by season, weekday/weekend group and hour on 2022–2023. Keep expected counts ≥20; label actual counts below 50% of expected. Derive 12 weather, AQI and time features. | 24,354 active hours |
-| Evaluate | Fit five model variants on 16,150 hours from 2022–2023; test on 8,204 hours from 2024. | [Test predictions](results/tables/holdout_predictions.csv), curves and model scores |
-| Check uncertainty and scenarios | Resample whole test days for the unweighted model's intervals; vary features, labels and policy settings; simulate same-day shifts of up to three hours. | [Confidence intervals](results/tables/served_ci.csv), sensitivity tables and simulated recovery |
-| Refit and use | Fit a separate unweighted logistic model on all active hours. Export its scaler and coefficients; score manual inputs or a DC forecast. | [Browser model](app/model.js) and next-24-hour daytime comparisons |
-
-Expected-ride labels use the **2022–2023 baseline in both paths**. The all-years browser refit does not redefine that baseline. The 2024 test scores describe the historical model fit.
-
-AQI associations use applicable records across 2022–2024. Seoul starts from its own dataset and fits city-specific coefficients. The [full pipeline guide](docs/pipeline.md) traces these separate analyses, preprocessing limits and code paths.
 
 ## Historical results
 
@@ -95,7 +83,7 @@ These are simulations. Actual ride recovery and the benefits of changing ride ti
 
 Adding AQI after weather changed AUROC from **0.936475 to 0.936477**. Average precision and Brier score became slightly worse. The [feature comparison](results/tables/ablation.csv) records the results.
 
-Daily and hourly AQI associations use different exposures and controls. Their difference does not establish causality or isolate measurement error. The heat and AQI exposure curves below are unadjusted associations.
+AQI associations use applicable records across 2022–2024. Daily and hourly associations use different exposures and controls. Their difference does not establish causality or isolate measurement error. The heat and AQI exposure curves below are unadjusted associations.
 
 | Daily and hourly AQI associations | Heat and AQI exposure curves |
 | --- | --- |

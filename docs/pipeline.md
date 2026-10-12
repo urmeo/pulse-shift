@@ -7,11 +7,11 @@ The DC pipeline has shared preparation followed by two separate model paths. His
 <a href="../results/figures/pipeline.svg">
   <picture>
     <source media="(max-width: 640px)" srcset="../results/figures/pipeline-mobile.svg">
-    <img src="../results/figures/pipeline.svg" alt="DC sources become an hourly panel with labels and features, then branch into historical evaluation and a separate browser model refit.">
+    <img src="../results/figures/pipeline.svg" alt="Prepared DC hours branch into historical evaluation and a separate browser model refit. Held-out 2024 data enter the historical test directly. The browser scores new conditions, with a forecast-only gate for complete inputs and the study's heat and AQI limits.">
   </picture>
 </a>
 
-The comparison shows two of five historical models. Climatology predicts the training low-demand rate for each season, day type and hour. AUROC measures ranking; the probability panel shows calibration on the same 2024 test.
+Training data fit the historical models; a separate edge sends held-out 2024 hours to the test. The browser path refits all active hours, then scores new conditions with fixed coefficients. The evidence card reports the unweighted historical model's AUROC and whole-day interval, alongside its probability overestimation. The dashed gate applies only to forecast hour selection, requiring complete inputs and the study's heat and AQI limits.
 
 ## 1. Assemble the DC panel
 
