@@ -55,13 +55,11 @@ A simulated shift of up to **three hours** produced a predicted recovery of **36
 
 [![Ride-weighted predicted-risk reduction by month under the time-shift scenario](results/figures/ram_by_month.png)](results/figures/ram_by_month.png)
 
-These are simulations, not observed ride recovery. The analysis compares same-day hours within ±3 hours using historical 2024 predictions, with heat index below 103°F and AQI below 150.
+The analysis compares same-day hours within ±3 hours using historical 2024 predictions, with heat index below 103°F and AQI below 150.
 
 | Simulated shifts | Cancellations | Study-threshold violations |
 | ---: | ---: | ---: |
 | 1,126 | 9 | 0 |
-
-[Policy predictions](results/tables/policy_predictions.csv) · [Sensitivity results](results/tables/sensitivity_policy.csv)
 
 ## More charts and data
 
