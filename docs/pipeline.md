@@ -11,6 +11,8 @@ The DC pipeline has shared preparation followed by two separate model paths. His
   </picture>
 </a>
 
+The comparison shows two of five historical models. Climatology predicts the training low-demand rate for each season, day type and hour. AUROC measures ranking; the probability panel shows calibration on the same 2024 test.
+
 ## 1. Assemble the DC panel
 
 | Input | Preparation |

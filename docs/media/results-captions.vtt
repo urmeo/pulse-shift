@@ -4,16 +4,16 @@ WEBVTT
 Unweighted model: scores from the 2024 test.
 
 00:03.300 --> 00:06.800
-Join public data by hour.
-Define active hours, labels and 12 features.
+Estimate low hourly demand in DC:
+rides below half the expected count.
 
 00:07.600 --> 00:12.100
-Evaluate 2024 using models fit on 2022–2023.
-Refit the browser model separately on all active hours.
+Two of five historical models are shown.
+The browser uses a separate refit.
 
 00:12.900 --> 00:16.400
-Scores describe historical testing.
-Live forecast accuracy is unmeasured.
+Forecast choices must meet study limits.
+Live accuracy is unmeasured.
 
 00:17.200 --> 00:20.200
 Compare five models on 8,204 test hours from 2024.
