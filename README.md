@@ -129,4 +129,16 @@ cd pulse-shift
 python3 -m http.server 8000
 ```
 
-Author and sole contributor: [urme](https://github.com/urmeo) · [MIT license](LICENSE)
+## References
+
+Saito, T., & Rehmsmeier, M. (2015). The precision-recall plot is more informative than the ROC plot when evaluating binary classifiers on imbalanced datasets. *PLOS ONE, 10*(3), Article e0118432. [https://doi.org/10.1371/journal.pone.0118432](https://doi.org/10.1371/journal.pone.0118432)
+
+*Seoul bike sharing demand* [Data set]. (2020). UCI Machine Learning Repository. [https://doi.org/10.24432/C5F62R](https://doi.org/10.24432/C5F62R)
+
+Van Calster, B., McLernon, D. J., van Smeden, M., Wynants, L., & Steyerberg, E. W. (2019). Calibration: The Achilles heel of predictive analytics. *BMC Medicine, 17*(1), Article 230. [https://doi.org/10.1186/s12916-019-1466-7](https://doi.org/10.1186/s12916-019-1466-7)
+
+Vickers, A. J., & Elkin, E. B. (2006). Decision curve analysis: A novel method for evaluating prediction models. *Medical Decision Making, 26*(6), 565–574. [https://doi.org/10.1177/0272989X06295361](https://doi.org/10.1177/0272989X06295361)
+
+## License
+
+[MIT](LICENSE). Author and sole contributor: [urme](https://github.com/urmeo).
