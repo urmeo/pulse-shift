@@ -4,7 +4,7 @@ Author and sole contributor: [urme](https://github.com/urmeo).
 
 ## Setup and checks
 
-CI checks Python **3.12, 3.13 and 3.14**, and uses **Node.js 22** for browser tests. From the repository root, create a Python environment and install the pinned dependencies:
+Tested with Python **3.12, 3.13 and 3.14**, and **Node.js 22**. From the repository root, create a Python environment and install the pinned dependencies:
 
 ```bash
 python3 -m venv .venv
@@ -12,7 +12,7 @@ source .venv/bin/activate
 python -m pip install -r research/requirements.txt -r research/requirements-dev.txt
 ```
 
-Run the checks used in CI:
+Run the checks locally:
 
 ```bash
 PYTHONPATH=research pytest research/tests -q --cov=pulseshift --cov-branch --cov-fail-under=60
