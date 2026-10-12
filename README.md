@@ -9,7 +9,7 @@ PulseShift estimates the chance that hourly Capital Bikeshare rides fall below h
   </picture>
 </a>
 
-[Pipeline details](docs/pipeline.md) · [Editable Figma source](https://www.figma.com/design/yhY22TCHa8m8mhBi1Z4RCw?node-id=2-2)
+[Pipeline details](docs/pipeline.md) · [Figma source](https://www.figma.com/design/yhY22TCHa8m8mhBi1Z4RCw?node-id=2-2)
 
 [Open the app](https://urmeo.github.io/pulse-shift/) · [Visual report](https://urmeo.github.io/pulse-shift/results/) · [Data and methods](results/README.md)
 
