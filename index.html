@@ -70,25 +70,21 @@
     <p class="hint" id="modelnote"></p>
 
     <section class="pipeline-section" id="pipeline" aria-labelledby="pipeline-title">
-      <h2 id="pipeline-title">Project pipeline</h2>
+      <h2 id="pipeline-title">Bike-share demand pipeline</h2>
       <figure>
         <picture>
-          <source media="(max-width: 640px)" srcset="results/figures/pipeline-mobile.svg" width="360" height="2480">
-          <img class="pipeline-image" src="results/figures/pipeline.svg" width="1280" height="1456" loading="lazy" alt="DC records become labeled hours for the browser model refit. Fixed parameters score manual conditions or forecasts; forecast-only eligibility rules limit hour selection. Separate research checks cover the 2024 historical test, simulated time shifts, AQI and smoke associations, and an independent Seoul refit.">
+          <source media="(max-width: 640px)" srcset="results/figures/pipeline-mobile.svg" width="360" height="2400">
+          <img class="pipeline-image" src="results/figures/pipeline.svg" width="1280" height="1360" loading="lazy" alt="DC rides, weather and AQI become labeled hours. Historical evaluation trains on 2022–2023, tests on 2024 and simulates same-day shifts. Browser use refits on 2022–2024, scores manual or forecast conditions and selects forecast hours within study limits. AQI and smoke analyses and a separate Seoul refit provide supporting research.">
         </picture>
-        <figcaption>Research prototype for aggregate demand. Live forecast accuracy and actual time-shift benefits are unmeasured.</figcaption>
+        <figcaption>A research prototype for aggregate bike-share demand. Historical evaluation and browser use follow separate paths.</figcaption>
       </figure>
       <details id="pipeline-text">
         <summary>Read the pipeline as text</summary>
-        <h3>Build the browser model</h3>
+        <h3>Shared data</h3>
         <p>Join Capital Bikeshare rides, NOAA DCA weather and CAMS AQI by UTC hour, with EPA daily AQI as the historical fallback. The 2022–2024 panel has 26,288 hours.</p>
-        <p>Expected rides use the 2022–2023 baseline for each season, weekday/weekend group and hour. Keep expected counts ≥20; low demand means rides below half the expected count. This leaves 24,354 active hours and 12 weather, AQI and time features.</p>
-        <p>Refit unweighted logistic regression on all 24,354 active hours. Export the scaler, weights and intercept as fixed browser parameters.</p>
-        <h3>Estimate new conditions</h3>
-        <p>For each new hour, derive 12 features, apply the fixed scaler and compute the logistic probability. Manual conditions give one estimate.</p>
-        <p>Open-Meteo weather and CAMS AQI forecasts let the app compare complete hours in the next 24 hours, from 06:00 to 21:00 DC time. Forecast selection requires heat index below 103°F and AQI below 150, then chooses the lowest estimated probability.</p>
-        <h3>Historical test</h3>
-        <p>Fit five model variants on 16,150 hours from 2022–2023; test on 8,204 hours from 2024. Two model scores are listed below. This test evaluates a separate fit from the all-years browser refit.</p>
+        <p>Expected rides use a 2022–2023 baseline for each season, weekday/weekend group and hour. Keep hours with at least 20 expected rides; low demand means actual rides below half that count. This leaves 24,354 active hours and 12 weather, AQI and time features.</p>
+        <h3>Historical evaluation</h3>
+        <p>Fit five model variants on 16,150 active hours from 2022–2023; test on 8,204 active hours from 2024. Two results are shown below.</p>
         <table>
           <caption>2024 test AUROC · higher is better</caption>
           <thead><tr><th scope="col">Model</th><th scope="col">AUROC</th></tr></thead>
@@ -97,17 +93,15 @@
             <tr><th scope="row">Unweighted logistic</th><td>0.936</td></tr>
           </tbody>
         </table>
-        <p>Climatology predicts the training low-demand rate for each season, day type and hour. AUROC measures ranking. The unweighted model's 95% interval is 0.900–0.967, from 1,000 whole-day bootstrap resamples.</p>
-        <p>Its mean prediction is 6.88%, compared with 2.46% observed on the 2024 test. Its probabilities overestimate the event rate.</p>
-        <h3>Simulated time shifts</h3>
-        <p>Use the historical model's 2024 test estimates and recorded conditions to compare hours within ±3 hours on the same day, under the study's heat and AQI limits. Predicted ride recovery assumes demand transfers to the chosen hour.</p>
-        <h3>AQI and smoke</h3>
-        <p>Use applicable 2022–2024 DC records for daily and hourly associations, exposure curves, smoke context and measurement-error scenarios. Different exposures and controls limit comparison; these observational analyses do not establish causality.</p>
-        <h3>Separate Seoul refit</h3>
-        <p>Fit a city-specific 10-feature model on its own UCI dataset. Within each season, train on the earliest 75% of functioning dates and test on the latest 25%, keeping whole dates together.</p>
-        <h3>Limits and recorded outputs</h3>
-        <p>This prototype estimates aggregate bike-share demand. Individual activity and health outcomes were not measured. Live forecast accuracy and actual time-shift benefits remain unmeasured.</p>
-        <p>Research checks vary features, labels, subgroups, policy windows and smoke thresholds. Tables, curves and predictions record the results. Metadata include the panel checksum, source hashes and runtime versions.</p>
+        <p>Climatology uses the training low-demand rate for each season, day type and hour. AUROC measures ranking. The unweighted model's 95% interval is 0.900–0.967, from 1,000 whole-day bootstrap resamples. Its mean prediction was 6.88%, compared with 2.46% observed; probabilities overestimated the 2024 event rate.</p>
+        <p>The time-shift simulation uses the unweighted model's 2024 test estimates and recorded conditions. It compares hours within ±3 hours on the same day, requiring heat index below 103°F and AQI below 150 at the chosen hour. Predicted recovery assumes demand transfers; actual benefits were not measured.</p>
+        <h3>Browser use</h3>
+        <p>Separately refit unweighted logistic regression on all 24,354 active hours from 2022–2024. Export fixed scaling parameters and coefficients to estimate the chance of low demand from manual inputs or DC forecasts. The historical scores above evaluate the earlier fit.</p>
+        <p>Forecasts use Open-Meteo weather and CAMS AQI. Compare complete hours in the next 24 hours, from 06:00 to 21:00 DC time, with heat index below 103°F and AQI below 150. Choose the lowest estimated probability. These are study limits; follow official advisories. Live forecast accuracy has not been prospectively evaluated.</p>
+        <h3>Other research</h3>
+        <p>AQI and smoke analyses examine daily and hourly associations in the DC records. Different exposures and controls limit comparison; these observational analyses do not establish causality.</p>
+        <p>The Seoul analysis fits a separate 10-feature model on its own UCI dataset. Within each season, train on the earliest 75% of functioning dates and test on the latest 25%, keeping whole dates together.</p>
+        <p>Research checks do not change the browser parameters. The project estimates aggregate network demand, not individual activity or health outcomes.</p>
       </details>
       <p class="pipeline-links"><a href="results/">Charts and results</a> · <a href="https://github.com/urmeo/pulse-shift/blob/main/docs/pipeline.md">Data, methods and limits</a></p>
     </section>

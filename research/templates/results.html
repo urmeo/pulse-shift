@@ -33,32 +33,35 @@
       <a href="figures/pipeline.svg">
         <picture>
           <source media="(max-width: 640px)" srcset="figures/pipeline-mobile.svg">
-          <img class="pipeline" src="figures/pipeline.svg" alt="DC records become labeled hours for the browser refit. Fixed parameters score manual conditions or forecasts; eligible forecast hours are compared. Separate research checks cover historical evaluation, simulated shifts, AQI and smoke, and a city-specific Seoul refit.">
+          <img class="pipeline" src="figures/pipeline.svg" alt="Labeled DC hours feed two separate paths: historical evaluation on 2024 data and an all-years browser refit. The browser estimates demand from manual conditions or forecasts; only forecasts compare eligible hours. Other research studies AQI and smoke and fits a separate Seoul model.">
         </picture>
       </a>
-      <ol class="pipeline-steps" role="list">
-        <li>
-          <h3><span aria-hidden="true">01</span> Assemble the panel</h3>
-          <p>Join hourly rides and NOAA weather in UTC. Use CAMS hourly AQI for 80.3% of hours, with EPA daily AQI as fallback. The panel has 26,288 hours.</p>
-        </li>
-        <li>
-          <h3><span aria-hidden="true">02</span> Define the target</h3>
-          <p>Estimate expected rides from 2022–2023 season, weekday/weekend and hour groups, adjusted for training-year volume. Keep hours with at least 20 expected rides; low demand means actual rides below 50% of expected.</p>
-          <p>This gives $active_hours active hours with 12 model features.</p>
-        </li>
-        <li>
-          <h3><span aria-hidden="true">03</span> Refit and score in the browser</h3>
-          <p>Refit unweighted logistic regression on all $active_hours active hours and export the scaler and 12-feature coefficients. The browser derives features and applies these fixed parameters to manual conditions or forecasts.</p>
-          <p>Manual input produces one estimate. Forecasts compare hours in the next 24 hours, 06:00–21:00 DC time, and select the lowest eligible probability.</p>
-          <p>Forecast comparisons exclude hours with missing inputs, heat index ≥103°F or AQI ≥150.</p>
-        </li>
-        <li>
-          <h3><span aria-hidden="true">04</span> Check the research results</h3>
-          <p>Fit five models on $train_hours hours in 2022–2023; evaluate on $test_hours hours in 2024. Report curves, scores and whole-day bootstrap intervals for the unweighted model, with sensitivity analyses.</p>
-          <p>Simulate same-day shifts of up to three hours using historical unweighted predictions. Study AQI and smoke associations in the 2022–2024 DC records. Refit separately on Seoul data with 10 features and a 75/25 whole-date split within each season.</p>
-        </li>
-      </ol>
-      <p class="note">These research checks use separate fits and analyses. The historical unweighted model overestimates probabilities; live forecast accuracy and actual ride recovery remain unmeasured. See the <a href="https://github.com/urmeo/pulse-shift/blob/main/docs/pipeline.md">full pipeline and code references</a>.</p>
+      <details>
+        <summary>Read the pipeline as text</summary>
+        <ul class="pipeline-steps" role="list">
+          <li>
+            <h3>Shared data</h3>
+            <p>Join rides, NOAA weather and CAMS hourly AQI in UTC, with EPA daily AQI as fallback. The 2022–2024 panel has 26,288 DC hours; CAMS coverage is 80.3%.</p>
+            <p>Use the 2022–2023 baseline for expected rides. Keep expected counts ≥20; actual counts below half of expected mean low demand. This leaves $active_hours active hours and 12 features.</p>
+          </li>
+          <li>
+            <h3>Historical evaluation</h3>
+            <p>Train five models on $train_hours active hours in 2022–2023; test on $test_hours in 2024. Compare curves and scores. Report whole-day bootstrap intervals for the unweighted model.</p>
+            <p>Simulate same-day shifts of up to three hours using historical unweighted predictions. Recovery assumes demand transfers to the chosen hour; actual ride recovery was not measured.</p>
+          </li>
+          <li>
+            <h3>Browser model</h3>
+            <p>Refit unweighted logistic regression on all $active_hours active hours in 2022–2024. Export the fixed scaler and 12-feature coefficients. Manual conditions give one estimate.</p>
+            <p>DC forecasts compare hours with complete inputs in the next 24 hours, 06:00–21:00 DC time. Exclude heat index ≥103°F or AQI ≥150 under the study rules, then choose the lowest estimated probability.</p>
+          </li>
+          <li>
+            <h3>Other research</h3>
+            <p>Study AQI and smoke in the 2022–2024 DC records. These observational associations do not establish causality.</p>
+            <p>Fit a separate 10-feature model on Seoul data. Within each season, train on the earliest 75% of functioning dates and test on the latest 25%, keeping whole dates together.</p>
+          </li>
+        </ul>
+      </details>
+      <p class="note">The historical unweighted model overestimates probabilities. Live forecast accuracy and actual ride recovery remain unmeasured. See the <a href="https://github.com/urmeo/pulse-shift/blob/main/docs/pipeline.md">full pipeline and code references</a>.</p>
     </section>
 
     <section aria-labelledby="evaluation-title">

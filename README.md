@@ -5,7 +5,7 @@ PulseShift estimates the chance that hourly Capital Bikeshare rides fall below h
 <a href="results/figures/pipeline.svg">
   <picture>
     <source media="(max-width: 640px)" srcset="results/figures/pipeline-mobile.svg">
-    <img src="results/figures/pipeline.svg" alt="DC records become labeled hours for the browser model refit. Fixed parameters score manual conditions or forecasts; forecast-only eligibility rules limit hour selection. Separate research checks cover the 2024 historical test, simulated time shifts, AQI and smoke associations, and an independent Seoul refit.">
+    <img src="results/figures/pipeline.svg" alt="Shared DC records become labeled hours for two separate model paths: historical testing and the browser refit. The fixed browser model scores manual conditions or forecasts; only forecasts enter hour selection. Other research covers AQI and smoke associations and an independent Seoul refit.">
   </picture>
 </a>
 

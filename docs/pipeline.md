@@ -2,16 +2,19 @@
 
 [Project](../README.md) · [Visual report](https://urmeo.github.io/pulse-shift/results/) · [Figma source](https://www.figma.com/design/yhY22TCHa8m8mhBi1Z4RCw?node-id=2-2)
 
-The main flow prepares DC records, defines low-demand hours and refits the browser model. Exported parameters score new manual or forecast conditions. Historical evaluation, simulated time shifts, AQI and smoke analyses, and a separate Seoul refit form the research checks below that flow.
+DC rides, weather and AQI become hourly examples with a shared low-demand definition and 12 features. The pipeline then follows two separate paths: historical evaluation and browser use.
 
 <a href="../results/figures/pipeline.svg">
   <picture>
     <source media="(max-width: 640px)" srcset="../results/figures/pipeline-mobile.svg">
-    <img src="../results/figures/pipeline.svg" alt="DC records become labeled hours for the browser model refit. Fixed parameters score manual conditions or forecasts; forecast-only eligibility rules limit hour selection. Separate research checks cover the 2024 historical test, simulated time shifts, AQI and smoke associations, and an independent Seoul refit.">
+    <img src="../results/figures/pipeline.svg" alt="DC rides, weather and AQI become labeled hours. Historical evaluation trains on 2022–2023, tests on 2024 and simulates same-day shifts. Browser use refits on 2022–2024, scores manual or forecast conditions and selects forecast hours within study limits. AQI and smoke analyses and a separate Seoul refit provide supporting research.">
   </picture>
 </a>
 
-The browser refit supplies the fixed scaler and coefficients directly to scoring. The dashed branch applies only to forecast hour selection: compare complete daytime hours under the study's heat and AQI limits, then choose the lowest estimated probability. The research checks retain their own inputs and evaluation conditions. They do not update the browser model. Historical probability overestimation, unmeasured live forecast accuracy and simulated time-shift recovery remain explicit limits.
+- **Historical evaluation:** fit on 2022–2023, test on 2024 and use those test estimates for simulated same-day shifts.
+- **Browser use:** refit on all active 2022–2024 hours and export fixed parameters. Manual inputs give one estimate; forecasts also let the app compare eligible hours.
+
+AQI and smoke analyses and an independent Seoul refit support the research. These checks do not change the browser parameters. This is a prototype for aggregate bike-share demand; live forecast accuracy and actual time-shift benefits remain unmeasured.
 
 ## 1. Assemble the DC panel
 
@@ -109,6 +112,14 @@ The main stages use these scripts:
 | [run_analysis.py](../research/scripts/run_analysis.py) | Historical metrics, uncertainty, sensitivity analyses, scenarios, figures, tables and visual report |
 | [train_model.py](../research/scripts/train_model.py) | All-active-hours browser model export |
 | [validate_seoul.py](../research/scripts/validate_seoul.py) | Independent Seoul refit, predictions and split metadata |
+
+With Python 3.12 or newer (tested with 3.12.13), rerun the DC analysis from the repository root using the committed panel:
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -r research/requirements.txt
+PYTHONPATH=research .venv/bin/python research/scripts/run_analysis.py
+```
 
 Generated research metadata record the source commit, source hashes, runtime and panel checksum. Presentation changes can rebuild the report from the saved summary without refitting the models. Existing numerical artifacts retain the provenance of their original analysis run.
 

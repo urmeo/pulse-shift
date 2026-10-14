@@ -24,7 +24,7 @@ a {
   color: var(--accent);
   text-underline-offset: 3px;
 }
-a:focus-visible, .table-scroll:focus-visible {
+a:focus-visible, summary:focus-visible, .table-scroll:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 4px;
 }
@@ -105,6 +105,16 @@ figcaption {
   border: 1px solid var(--border);
   border-radius: 12px;
 }
+details {
+  margin-top: 20px;
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+summary {
+  cursor: pointer;
+  font-weight: 600;
+}
 .pipeline-steps {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -122,11 +132,6 @@ figcaption {
 .pipeline-steps h3 {
   margin: 0 0 12px;
   font-size: 1.05rem;
-}
-.pipeline-steps h3 span {
-  margin-right: 8px;
-  color: var(--accent);
-  font-variant-numeric: tabular-nums;
 }
 .pipeline-steps p {
   color: var(--muted);
