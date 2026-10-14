@@ -21,7 +21,6 @@ def write_report(summary: dict) -> None:
         "</tr>"
         for row in models
     )
-    # Read the saved holdout scores to report their mean probability.
     predictions = pd.read_csv(config.TABLES / "holdout_predictions.csv")
     template = Template(
         (config.ROOT / "templates" / "results.html").read_text(encoding="utf-8")

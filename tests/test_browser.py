@@ -1,5 +1,3 @@
-"""Browser checks for the app, saved report and recorded walkthroughs."""
-
 import json
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer

@@ -21,7 +21,7 @@ Scores describe the unweighted model trained on **16,150 hours in 2022–2023** 
 
 ## Model evaluation
 
-These charts use the historical 2024 test set. Open any chart to view it at full size.
+These charts use the historical 2024 test set.
 
 [![Five models compared by AUROC, average precision and Brier score on the 2024 test set](results/figures/model_comparison.png)](results/figures/model_comparison.png)
 
@@ -109,8 +109,6 @@ The Seoul analysis fits city-specific coefficients and holds out the **latest 25
     <img src="docs/media/app-desktop.png" alt="PulseShift with manual weather and AQI inputs, the estimated chance of low bike-share demand, and the model's operating limits.">
   </picture>
 </a>
-
-These silent recordings show the working interface. Select a preview to play the full video with controls and English captions.
 
 | Manual app estimates | Pipeline and research charts |
 | --- | --- |

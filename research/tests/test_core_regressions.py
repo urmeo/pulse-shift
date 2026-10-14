@@ -1,5 +1,3 @@
-"""Heat calculations, recommendation ordering, and panel integrity."""
-
 import json
 import shutil
 import subprocess

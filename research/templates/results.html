@@ -61,17 +61,17 @@
           </li>
         </ul>
       </details>
-      <p class="note">The historical unweighted model overestimates probabilities. Live forecast accuracy and actual ride recovery remain unmeasured. See the <a href="https://github.com/urmeo/pulse-shift/blob/main/docs/pipeline.md">full pipeline and code references</a>.</p>
+      <p class="note">The historical unweighted model overestimates probabilities. Live forecast accuracy and actual ride recovery remain unmeasured. <a href="https://github.com/urmeo/pulse-shift/blob/main/docs/pipeline.md">Pipeline methods</a>.</p>
     </section>
 
     <section aria-labelledby="evaluation-title">
       <h2 id="evaluation-title">Model evaluation</h2>
-      <p>These charts use the historical 2024 test set. Open any chart to view it at full size.</p>
+      <p>These charts use the historical 2024 test set.</p>
       <figure>
         <a href="figures/model_comparison.png">
           <img src="figures/model_comparison.png" alt="Five models compared by AUROC, average precision and Brier score on the 2024 test set" loading="lazy">
         </a>
-        <figcaption>Model comparison. Higher AUROC and average precision are better; a lower Brier score is better.</figcaption>
+        <figcaption>Higher AUROC and average precision are better; a lower Brier score is better.</figcaption>
       </figure>
       <figure>
         <a href="figures/roc.png">
@@ -89,7 +89,7 @@
         <a href="figures/reliability.png">
           <img src="figures/reliability.png" alt="Predicted probabilities compared with observed low-demand rates for the two logistic variants" loading="lazy">
         </a>
-        <figcaption>Calibration. The unweighted model predicted $mean_prediction low demand on average; the observed rate was $observed_rate. It overestimates the event rate.</figcaption>
+        <figcaption>The unweighted model predicted $mean_prediction low demand on average; the observed rate was $observed_rate. It overestimates the event rate.</figcaption>
       </figure>
       <div class="table-scroll" tabindex="0" role="region" aria-label="Model comparison table">
         <table>
@@ -115,7 +115,7 @@
         <a href="figures/ram_by_month.png">
           <img src="figures/ram_by_month.png" alt="Ride-weighted predicted-risk reduction by month under the time-shift scenario" loading="lazy">
         </a>
-        <figcaption>Simulated recovery, not observed ride recovery. Candidate target hours must have heat index below 103°F and AQI below 150.</figcaption>
+        <figcaption>Simulated recovery. Candidate target hours must have heat index below 103°F and AQI below 150.</figcaption>
       </figure>
     </section>
 
@@ -129,7 +129,7 @@
         <a href="README.md">Data, method and limitations</a>
         <a href="tables/summary.json">Summary and provenance</a>
       </div>
-      <p class="note">This is an aggregate demand model. Individual activity and health outcomes were not measured. Coarse AQI data, daily fallback and observational confounding limit interpretation. Live forecasts have not been prospectively evaluated.</p>
+      <p class="note">This is an aggregate demand model. Individual activity and health outcomes were not measured. Coarse AQI data, daily fallback and observational confounding limit interpretation.</p>
     </section>
     <footer>Author and sole contributor: <a href="https://github.com/urmeo">urme</a> · <a href="../LICENSE">MIT license</a></footer>
   </main>

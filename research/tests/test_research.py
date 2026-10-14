@@ -1,5 +1,3 @@
-"""Regression checks for uncertainty, research labels, and holdout isolation."""
-
 import hashlib
 
 import numpy as np

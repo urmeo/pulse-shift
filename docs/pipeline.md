@@ -54,7 +54,7 @@ The [12 model features](../research/pulseshift/features.py) are heat index, cold
 
 Five variants share this historical test: climatology, unweighted logistic, balanced logistic, balanced logistic with isotonic calibration, and gradient boosting. The calibrated variant uses ordinary **five-fold classification cross-validation within the training data**. It does not use a separate calibration year or a time-series fold scheme.
 
-[run_analysis.py](../research/scripts/run_analysis.py) saves test probabilities, model scores, ROC and precision–recall curves, calibration and decision curves. Confidence intervals for the **unweighted model** resample whole test days. The results retain probability overestimation and all evaluation conditions.
+[run_analysis.py](../research/scripts/run_analysis.py) saves test probabilities, model scores, ROC and precision–recall curves, calibration and decision curves. Confidence intervals for the **unweighted model** resample whole test days.
 
 | Check | What varies or is measured |
 | --- | --- |
@@ -103,8 +103,6 @@ The [AQI analysis](../research/pulseshift/airquality.py) is observational. Diffe
 [validate_seoul.py](../research/scripts/validate_seoul.py) keeps the earliest 75% and latest 25% of functioning dates **within each season** as training and test blocks. It fits the target baseline only on training dates and trains a separate **10-feature** logistic model without AQI or smoke/haze. It does not transfer DC coefficients or use a global chronological forecast split. Dataset hashes and dates are recorded in [Seoul provenance](../results/tables/seoul_provenance.json).
 
 ## Reproduce and inspect
-
-The main stages use these scripts:
 
 | Script | Output |
 | --- | --- |

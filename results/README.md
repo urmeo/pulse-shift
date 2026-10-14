@@ -1,10 +1,8 @@
 # Results and methods
 
-[Open the visual report](https://urmeo.github.io/pulse-shift/results/) · [Return to the project](../README.md)
+[Visual report](https://urmeo.github.io/pulse-shift/results/) · [Project](../README.md) · [Pipeline](../docs/pipeline.md)
 
 The figures and tables in this directory come from the committed DC panel and the separate Seoul analysis. The report presents historical evaluation, observational associations and simulated policy outcomes. Browser coefficients are refit separately on all 24,354 active DC hours after evaluation.
-
-The [pipeline guide](../docs/pipeline.md) traces data preparation, target construction, historical evaluation, the browser export and the separate AQI and Seoul analyses. It also distinguishes the historical time-shift simulation from the live forecast comparison.
 
 ## Figures
 
@@ -66,7 +64,7 @@ These are scenario estimates, not observed ride recovery. The [monthly figure](f
 - Forecast comparisons use hours from **06:00 to 21:00 DC time** in the next 24 hours. Hours with missing inputs, heat index **≥103°F** or AQI **≥150** are excluded. These are study thresholds; follow official advisories.
 - The analysis uses public aggregate data under each provider's terms. The [MIT license](../LICENSE) covers this repository's code.
 
-The [summary metadata](tables/summary.json) record source hashes, runtime versions and the panel checksum. All generated figures are in [figures/](figures/), and predictions, sensitivity analyses and metadata are in [tables/](tables/).
+The [summary metadata](tables/summary.json) record source hashes, runtime versions and the panel checksum.
 
 [Open the browser app](https://urmeo.github.io/pulse-shift/) · [View the app screenshot](figures/pulseshift-ui.jpg).
 
