@@ -30,6 +30,7 @@ def write_report(summary: dict) -> None:
         auroc=f"{unweighted_scores['auroc']:.3f}",
         average_precision=f"{unweighted_scores['auprc']:.3f}",
         brier=f"{unweighted_scores['brier']:.3f}",
+        panel_hours=f"{summary['panel_rows']:,}",
         active_hours=f"{summary['active_hours']:,}",
         train_hours=f"{summary['train_rows']:,}",
         test_hours=f"{summary['test_rows']:,}",

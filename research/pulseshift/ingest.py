@@ -7,6 +7,7 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from . import config
@@ -60,51 +61,171 @@ def _to_numeric(series: pd.Series) -> pd.Series:
     return pd.to_numeric(cleaned, errors="coerce")
 
 
+def _bikeshare_hours(year_month: str) -> pd.DatetimeIndex:
+    start = pd.Timestamp(
+        year=int(year_month[:4]),
+        month=int(year_month[4:]),
+        day=1,
+        tz=config.LOCAL_TZ,
+    )
+    end = start + pd.offsets.MonthBegin()
+    return (
+        pd.date_range(
+            start.tz_convert("UTC"),
+            end.tz_convert("UTC"),
+            freq="h",
+            inclusive="left",
+            name="ts_utc",
+        )
+        .tz_localize(None)
+        .as_unit("ns")
+    )
+
+
+def _validate_bikeshare(hourly: pd.DataFrame, hours: pd.DatetimeIndex) -> pd.DataFrame:
+    columns = ["ts_utc", "rides_member", "rides_casual", "rides_total"]
+    if list(hourly.columns) != columns:
+        raise ValueError(
+            "bike-share cache requires UTC hours and all three ride counts"
+        )
+    timestamps = pd.DatetimeIndex(hourly["ts_utc"]).as_unit("ns")
+    if not timestamps.equals(hours):
+        raise ValueError("bike-share cache must contain every source hour exactly once")
+    hourly = hourly.copy()
+    hourly.columns.name = None
+    hourly["ts_utc"] = timestamps
+    counts = hourly[columns[1:]].to_numpy(dtype=float)
+    known = np.isfinite(counts).all(axis=1)
+    unknown = np.isnan(counts).all(axis=1)
+    if not (known | unknown).all():
+        raise ValueError(
+            "bike-share counts must be complete or all missing for an hour"
+        )
+    observed = counts[known]
+    if (observed < 0).any() or (observed != np.floor(observed)).any():
+        raise ValueError("bike-share counts must be nonnegative integers")
+    if not np.array_equal(observed[:, 2], observed[:, 0] + observed[:, 1]):
+        raise ValueError("bike-share totals must equal member plus casual counts")
+    hourly[columns[1:]] = counts
+    return hourly
+
+
 def load_bikeshare() -> pd.DataFrame:
-    """City-wide hourly ride counts (UTC), split by rider type."""
-    cache = config.INTERIM / "bikeshare_hourly.csv"
+    """Recorded trips on complete source-month calendars; unknown hours stay missing."""
+    months = config.ym_list()
+    if not months:
+        raise ValueError("at least one bike-share source month is required")
+    calendars = [_bikeshare_hours(month) for month in months]
+    hours = calendars[0].append(calendars[1:]).sort_values()
+    if hours.has_duplicates:
+        raise ValueError("bike-share source months must be unique")
+    cache = config.INTERIM / "bikeshare_hourly_v2.csv"
     if cache.exists():
-        return pd.read_csv(cache, parse_dates=["ts_utc"])
+        return _validate_bikeshare(pd.read_csv(cache, parse_dates=["ts_utc"]), hours)
 
     frames = []
-    for year_month in config.ym_list():
+    unknown_hours = []
+    for year_month in months:
         path = _download(
             config.BIKESHARE_URL.format(ym=year_month),
             config.RAW / f"cabi_{year_month}.zip",
         )
+        source_rows = 0
+        has_month_records = False
+        month_start = pd.Timestamp(f"{year_month[:4]}-{year_month[4:]}-01")
+        month_end = month_start + pd.offsets.MonthBegin()
         with zipfile.ZipFile(path) as archive:
             members = [
                 name
                 for name in archive.namelist()
                 if name.lower().endswith(".csv") and "macosx" not in name.lower()
             ]
+            if not members:
+                raise ValueError(f"bike-share source {year_month} has no CSV files")
             for name in members:
                 with archive.open(name) as handle:
-                    month_trips = pd.read_csv(
+                    chunks = pd.read_csv(
                         handle,
                         usecols=["started_at", "member_casual"],
                         low_memory=False,
+                        chunksize=100_000,
                     )
-                frames.append(month_trips)
+                    for trips in chunks:
+                        source_rows += len(trips)
+                        started = pd.to_datetime(
+                            trips["started_at"], format="mixed", errors="coerce"
+                        )
+                        if started.isna().any() or not pd.api.types.is_datetime64_dtype(
+                            started.dtype
+                        ):
+                            raise ValueError(
+                                f"bike-share source {year_month} has invalid local timestamps"
+                            )
+                        if not trips["member_casual"].isin(["member", "casual"]).all():
+                            raise ValueError(
+                                f"bike-share source {year_month} has invalid rider types"
+                            )
+                        has_month_records = has_month_records or bool(
+                            started.between(
+                                month_start, month_end, inclusive="left"
+                            ).any()
+                        )
+                        first = (
+                            started.dt.tz_localize(
+                                config.LOCAL_TZ, ambiguous=True, nonexistent="NaT"
+                            )
+                            .dt.tz_convert("UTC")
+                            .dt.floor("h")
+                            .dt.tz_localize(None)
+                        )
+                        second = (
+                            started.dt.tz_localize(
+                                config.LOCAL_TZ, ambiguous=False, nonexistent="NaT"
+                            )
+                            .dt.tz_convert("UTC")
+                            .dt.floor("h")
+                            .dt.tz_localize(None)
+                        )
+                        if first.isna().any():
+                            raise ValueError(
+                                f"bike-share source {year_month} has nonexistent local times"
+                            )
+                        if not (first.isin(hours) & second.isin(hours)).all():
+                            raise ValueError(
+                                f"bike-share source {year_month} extends outside covered months"
+                            )
+                        ambiguous = first != second
+                        unknown_hours.extend(first[ambiguous].tolist())
+                        unknown_hours.extend(second[ambiguous].tolist())
+                        if (~ambiguous).any():
+                            frames.append(
+                                trips.loc[~ambiguous]
+                                .assign(ts_utc=first[~ambiguous])
+                                .groupby(["ts_utc", "member_casual"])
+                                .size()
+                                .unstack(fill_value=0)
+                            )
+        if source_rows == 0:
+            raise ValueError(f"bike-share source {year_month} contains no trip records")
+        if not has_month_records:
+            raise ValueError(
+                f"bike-share source {year_month} has no records in its stated month"
+            )
 
-    trips = pd.concat(frames, ignore_index=True)
-    started = pd.to_datetime(trips["started_at"], format="mixed", errors="coerce")
-    local = started.dt.tz_localize(
-        config.LOCAL_TZ, ambiguous="NaT", nonexistent="shift_forward"
+    counts = (
+        pd.concat(frames).groupby(level=0).sum()
+        if frames
+        else pd.DataFrame(index=pd.DatetimeIndex([], name="ts_utc"))
     )
-    trips = trips.assign(ts_utc=local.dt.tz_convert("UTC").dt.floor("h")).dropna(
-        subset=["ts_utc"]
+    counts = (
+        counts.reindex(index=hours, columns=["member", "casual"], fill_value=0)
+        .fillna(0)
+        .astype(float)
     )
-    trips["ts_utc"] = trips["ts_utc"].dt.tz_localize(None)
-
-    trips = trips.dropna(subset=["member_casual"])
-    counts = trips.pivot_table(
-        index="ts_utc", columns="member_casual", aggfunc="size", fill_value=0
-    ).rename(columns={"member": "rides_member", "casual": "rides_casual"})
-    counts["rides_total"] = counts.sum(axis=1)
-    hourly = counts.reset_index()[
-        ["ts_utc", "rides_member", "rides_casual", "rides_total"]
-    ]
+    counts.loc[counts.index.isin(unknown_hours)] = np.nan
+    counts = counts.rename(columns={"member": "rides_member", "casual": "rides_casual"})
+    counts["rides_total"] = counts["rides_member"] + counts["rides_casual"]
+    hourly = _validate_bikeshare(counts.reset_index(), hours)
     _write_csv(hourly, cache)
     return hourly
 

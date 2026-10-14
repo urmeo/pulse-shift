@@ -457,13 +457,13 @@ def floor_sensitivity(panel: pd.DataFrame) -> list:
     """Compare holdout metrics across minimum expected ride counts."""
     rows = []
     for floor in (10, 20, 30):
-        active_hours = panel[panel["expected_rides"] >= floor].copy()
-        _, suppressed = suppression_mask(
-            active_hours["rides_total"].to_numpy(),
-            active_hours["expected_rides"].to_numpy(),
+        eligible, suppressed = suppression_mask(
+            panel["rides_total"].to_numpy(),
+            panel["expected_rides"].to_numpy(),
             floor=floor,
         )
-        active_hours["suppressed"] = suppressed.astype(int)
+        active_hours = panel.loc[eligible].copy()
+        active_hours["suppressed"] = suppressed[eligible].astype(int)
         train, test = temporal_split(active_hours)
         model = fit_logistic(train, balanced=False)
         scores = metrics(test["suppressed"], predict(model, test))

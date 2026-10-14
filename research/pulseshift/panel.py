@@ -44,7 +44,9 @@ def suppression_mask(
     floor: float = config.EXPECTED_FLOOR,
 ) -> tuple[np.ndarray | pd.Series, np.ndarray | pd.Series]:
     """Mark active hours and rides below the expected-volume threshold."""
-    active = expected >= floor
+    active = (
+        np.isfinite(rides) & (rides >= 0) & np.isfinite(expected) & (expected >= floor)
+    )
     suppressed = (rides < ratio * expected) & active
     return active, suppressed
 
@@ -108,7 +110,7 @@ def write_panel(
 
 
 def build_panel(write: bool = True) -> pd.DataFrame:
-    bikes = ingest.load_bikeshare()
+    bikes = ingest.load_bikeshare().dropna(subset=["rides_total"]).copy()
     weather = ingest.load_weather()
     aqi = ingest.load_aqi()
 
