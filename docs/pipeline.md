@@ -123,4 +123,13 @@ PYTHONPATH=research .venv/bin/python research/scripts/run_analysis.py
 
 Generated research metadata record the source commit, source hashes, runtime and panel checksum. Presentation changes can rebuild the report from the saved summary without refitting the models. Existing numerical artifacts retain the provenance of their original analysis run.
 
+To run the code and browser checks, use the same Python environment, Node.js 18 or newer and an installed copy of Google Chrome:
+
+```bash
+.venv/bin/python -m pip install -r research/requirements-dev.txt
+.venv/bin/python research/scripts/verify.py
+```
+
+The final command runs the JavaScript and Python tests, lint, formatting, type checks and desktop/mobile Chrome checks. It uses a temporary local server and does not rewrite the model or results, or call forecast services.
+
 Author and sole contributor: [urme](https://github.com/urmeo).
