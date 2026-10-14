@@ -207,17 +207,25 @@ def aqi_identification_plot(between: dict, within: dict) -> None:
     fig, ax = plt.subplots(figsize=(14, 6))
     for position, (label, estimate) in enumerate(rows):
         effect = estimate["effect_per_50"]
-        ax.errorbar(
-            effect,
-            position,
-            xerr=[
-                [effect - estimate["ci_low"]],
-                [estimate["ci_high"] - effect],
-            ],
-            fmt="o",
-            color="#36c",
-            capsize=4,
-        )
+        if effect is None:
+            ax.text(
+                0.02,
+                position,
+                f"{label}: AQI not identified",
+                transform=ax.get_yaxis_transform(),
+            )
+            continue
+        if estimate["ci_low"] is not None and estimate["ci_high"] is not None:
+            ax.plot(
+                [estimate["ci_low"], estimate["ci_high"]],
+                [position, position],
+                color="#36c",
+                marker="|",
+                markersize=8,
+            )
+        else:
+            label += "\nInterval unavailable"
+        ax.plot(effect, position, "o", color="#36c")
         ax.text(effect, position + 0.18, label, ha="center", fontsize=9)
     ax.axvline(0, color="#a33", ls="--", lw=1)
     ax.set_yticks([])

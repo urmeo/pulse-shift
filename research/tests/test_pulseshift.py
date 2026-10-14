@@ -129,7 +129,7 @@ def _synthetic_aqi_panel():
         day_mean = 20 * day_index
         day_boost = 0.02 * day_index
         for hour in range(24):
-            aqi = day_mean + 40 + 20 * np.sin(2 * np.pi * hour / 24)
+            aqi = day_mean + 40 + (20 + day_index) * np.sin(2 * np.pi * hour / 24)
             ratio = 1.0 - 0.004 * aqi + day_boost + rng.normal(0, 0.01)
             rows.append(
                 {

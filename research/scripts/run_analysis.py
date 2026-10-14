@@ -299,7 +299,25 @@ def aqi_identification(active_hours: pd.DataFrame) -> dict:
     episodes = airquality.smoke_episodes(active_hours, aqi_thresh=100)
     plots.aqi_identification_plot(between, within)
 
-    columns = ["identification", "effect_per_50", "ci_low", "ci_high", "se", "n"]
+    columns = [
+        "identification",
+        "effect_per_50",
+        "ci_low",
+        "ci_high",
+        "se",
+        "n",
+        "identified",
+        "design_rank",
+        "design_columns",
+        "exposure_residual_fraction",
+        "rank_tolerance",
+        "exposure_tolerance",
+        "bootstrap_method",
+        "bootstrap_conditioning",
+        "bootstrap_requested",
+        "bootstrap_valid",
+        "uncertainty_status",
+    ]
     ladder = pd.DataFrame(
         [
             {"identification": "between-day (controlled)", **between},
@@ -317,18 +335,31 @@ def aqi_identification(active_hours: pd.DataFrame) -> dict:
                 "se": within["se"],
                 "mde_80pct_power": within["mde80"],
                 "mde_90pct_power": within["mde90"],
+                "identified": within["identified"],
+                "bootstrap_requested": within["bootstrap_requested"],
+                "bootstrap_valid": within["bootstrap_valid"],
+                "bootstrap_conditioning": within["bootstrap_conditioning"],
+                "uncertainty_status": within["uncertainty_status"],
             }
         ]
     )
     write_table(power, "aqi_power")
 
-    error = airquality.measurement_error_bound(active_hours, within["effect_per_50"])
-    write_table(pd.DataFrame(error["rows"]), "measurement_error")
+    error = (
+        airquality.measurement_error_bound(active_hours, within["effect_per_50"])
+        if within["identified"]
+        else {"status": "AQI not identified", "rows": []}
+    )
+    write_table(
+        pd.DataFrame(error["rows"], columns=["reliability", "rho", "corrected_per_50"]),
+        "measurement_error",
+    )
     return {
         "between_day": between,
         "within_day": within,
         "episodes": episodes,
         "measurement_error": error,
+        "conditioning": "Saved expected-ride baseline; not a full pipeline bootstrap",
     }
 
 
@@ -446,6 +477,12 @@ def smoke_sensitivity(active_hours: pd.DataFrame) -> list:
                     "ride_ratio_vs_clean",
                     "ci_low",
                     "ci_high",
+                    "clean_days",
+                    "bootstrap_method",
+                    "bootstrap_conditioning",
+                    "bootstrap_requested",
+                    "bootstrap_valid",
+                    "uncertainty_status",
                 ]
             }
         )
