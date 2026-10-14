@@ -20,12 +20,16 @@ AQI and smoke analyses and an independent Seoul refit support the research. Thes
 
 | Input | Preparation |
 | --- | --- |
-| Capital Bikeshare trips | Interpret local timestamps in DC time, convert to UTC and count rides by hour. |
+| Capital Bikeshare trips | Validate each monthly archive, convert DC timestamps to UTC and count rides on complete source-month calendars. |
 | NOAA DCA weather | Interpret station timestamps in fixed UTC−5 local standard time, convert to UTC and join rides by UTC hour. |
 | CAMS AQI through Open-Meteo | Join by UTC hour. These values cover 80.3% of the committed panel. |
 | EPA daily AQI | Join by DC local date and use as the fallback when hourly CAMS AQI is missing. |
 
-The ride/weather join is an inner join. Limited gaps in temperature, humidity, wind and visibility are interpolated or filled. Daily EPA AQI is forward/backward filled; missing precipitation becomes zero. Rows still missing model features are removed. The resulting panel has **26,288 network-hours**, with **16 calendar hours absent**, across 2022–2024.
+An hour with no trip records becomes zero only after its monthly archive has been fully read and validated. Missing, unreadable or invalid archives stop the build. Ambiguous fall-back timestamps leave both possible UTC hours unknown; those hours are excluded before the baseline and labels are calculated. Records supplied in a neighboring month's archive are retained if they fall within the covered months.
+
+The ride/weather join is an inner join. Limited gaps in temperature, humidity, wind and visibility are interpolated or filled. Daily EPA AQI is forward/backward filled; missing precipitation becomes zero. Rows still missing model features are removed. The resulting panel has **26,289 network-hours** across 2022–2024. Its **15 absent calendar hours** comprise six ambiguous fall-back hours and nine hours without weather rows.
+
+The [source-coverage audit](../results/tables/zero_hour_audit.json) records the archive hashes and restored zero-trip hour: **2022-01-04 at 02:00 DC time**. It uses EPA daily AQI, falls below the active-hour floor and does not change the model's training or test membership. Zero means no recorded trip starts in the published source, not proof that no travel occurred.
 
 Gap filling occurs across the panel before the year split. This is retrospective observational preprocessing; the evaluation does not reproduce every data-availability condition of a live forecast. CAMS source values are approximately 45 km and three-hourly, returned as hourly API values.
 

@@ -91,7 +91,7 @@ The Seoul analysis fits city-specific coefficients and holds out the **latest 25
 
 | Item | Source or coverage |
 | --- | --- |
-| DC panel | 26,288 network-hours, 2022–2024; 16 calendar hours absent |
+| DC panel | 26,289 network-hours, 2022–2024; 15 calendar hours absent |
 | Rides | Capital Bikeshare aggregate hourly counts |
 | Weather | NOAA observations from Reagan National Airport (DCA) |
 | Air quality | CAMS hourly AQI for 80.3% of hours; EPA daily AQI fallback |

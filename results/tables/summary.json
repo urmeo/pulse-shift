@@ -1,9 +1,9 @@
 {
   "provenance": {
-    "generated_at_utc": "2026-10-11T18:57:39.966675+00:00",
-    "source_commit": "c48166b3b1c22a3fc21058373792bc7244ab993c",
+    "generated_at_utc": "2026-10-14T19:45:01.309034+00:00",
+    "source_commit": "b0c1ae92732660aa56989751ad8f382e38c8ff8a",
     "source_dirty": false,
-    "source_sha256": "df34cf58d7dd266bd81da1798dfaa1a83f344003a33de642d0c9527d9df05d2f",
+    "source_sha256": "d701c55122e346f3978f21a8d2b19f164d61275e258e8f18662ffcfdd4d38d7d",
     "source_files_sha256": {
       "research/pulseshift/__init__.py": "6a09c7098968c3e1d4de8fbd2e7b7fd0ad791ca4f8b811be7128baee3cb50da2",
       "research/pulseshift/airquality.py": "0ad0faaed706da0e484fdb6caf08c76ca789a558f3f4113b139ab2f019f34045",
@@ -13,22 +13,23 @@
       "research/pulseshift/equity.py": "ffdbbf9ac5b320c62e623dfafde8423d8771d311fda1f1201bd8653722f4f7a9",
       "research/pulseshift/evaluation.py": "5e773834f3933da4d9dd0046679214d1c809cba0481b021046f73bb2018c8f6e",
       "research/pulseshift/features.py": "79f1e6d78d3e459abb7a2532b6f40cd6fec0ac0898762a904eb6f18a03d8e96e",
-      "research/pulseshift/ingest.py": "8b13b1709c3e04ad10249c9503a06d028ac6b8abe8c26ceee6fc4e8632b01486",
-      "research/pulseshift/models.py": "64fb48937d1789fad2f3afcd268fcaac3783c7c4ac22a54ed0979763482a3719",
-      "research/pulseshift/panel.py": "d4a20b6d3f140ae23f6dcd672ca7c2045f7cc3b45d3d99fdfd37089543515831",
+      "research/pulseshift/ingest.py": "51a31994bd701b1a0cc1ba80479e2848be3f04619348a5bb22a906461bb3ef59",
+      "research/pulseshift/models.py": "d405bf546dffb9e0f2044d5be636bbb343c9db53162c221ef00090213a14be41",
+      "research/pulseshift/panel.py": "383343c1e1f8106cb101bf0a68fac55300faf7ebe64323b1d5a325f993aace4d",
       "research/pulseshift/plots.py": "e765b4f93151ced46fbdf4f2ebc905114e47c67343a307bcd2de74ec1091eea2",
-      "research/pulseshift/provenance.py": "b75e0ca245357253e3be48de804cd10db22c7d52ec6a0c6de000de003bee7641",
+      "research/pulseshift/provenance.py": "3d306c4a74dda1d2e51d81abfa1399dec1857b1803cd65d63e612d5a2b8a1cec",
       "research/pulseshift/ram.py": "f6b3d0f0ed18960c58fc85b0d44a6c12eaba25f971edf43fc3561b9f27aa0b11",
-      "research/pulseshift/report.py": "0bb25e2dc5d50a7114d6bf43700083f1971c30e95adca58f94cdfbf2cdd50406",
+      "research/pulseshift/report.py": "2e7bf2ed720ab41a81c7ab6ca911cbf7f8343ed1e89d9c4770b1acdcb39849ee",
       "research/pulseshift/safety.py": "60bb49ce9a7fdc5b4a4dce50d6fdb6b7c29e64305408d3286f264cb897d6e442",
       "research/pulseshift/tables.py": "a4f5027ee1383d4edd565365ca3599face4b400379c36afb78979b84d4431936",
       "research/scripts/build_data.py": "3cf7f47b7de6fc4da3e4cbe97f2da262dc7890510536e4a63db85ee5d1fa72ef",
-      "research/scripts/run_analysis.py": "8616f83850d1aacb037fdd62a2c87b000ed1b92868bd858c0d38fe30ba9d3e59",
+      "research/scripts/run_analysis.py": "d8738c944a5c795381b274e592f680b75ce30129406dbd68d5f612beb1f6f9da",
       "research/scripts/train_model.py": "660e22c76b555a6561c210d1a62741f8af6f0a6afeac5bdf45e4475428661d9a",
       "research/scripts/validate_seoul.py": "a2b313411cb87ffe328c452be10e26da40d30079b458fe8efd1035bb84f789bd",
-      "research/templates/results.html": "a00483f4853c1d7037b4a300a8907304e1b192b9c92371b4999992aecab9e060"
+      "research/scripts/verify.py": "724cf2e63752ae4b353a261d0e6461f63c24a66af557bd52fa5d572df38af255",
+      "research/templates/results.html": "c5a993ac26206f2ec074554506566fbd9ec33fc8edec0e2c45fe4300a7df7cc1"
     },
-    "panel_sha256": "69eed06d11c82b591e53380346a1019703889e47cb3c72d13b8939a7589a4769",
+    "panel_sha256": "beec804a0839f73cd905f2147accf2bb9a256531dcce6986378368faccdc972e",
     "python": "3.12.13",
     "platform": "macOS-27.0.1-arm64-arm-64bit",
     "packages": {
@@ -65,7 +66,7 @@
     "aqi": "daily-peak and hourly associations use different exposures; residual confounding and intraday measurement error remain",
     "rider_burden": "aggregate rider-type hour rates, not individual or neighborhood equity"
   },
-  "panel_rows": 26288,
+  "panel_rows": 26289,
   "active_hours": 24354,
   "train_rows": 16150,
   "test_rows": 8204,
@@ -151,9 +152,9 @@
     ]
   },
   "ram": {
-    "recovered_rides": 92596.56784068375,
-    "recovered_minutes": 1203755.3819288888,
-    "lost_rides_no_adapt": 251598.73331817717,
+    "recovered_rides": 92601.8566553879,
+    "recovered_minutes": 1203824.1365200428,
+    "lost_rides_no_adapt": 251613.1038192805,
     "ram_pct_of_lost": 0.3680327266337392,
     "share_shifted": 0.1372501218917601,
     "share_cancel": 0.0010970258410531448,
@@ -174,37 +175,37 @@
     "all_safe": true
   },
   "smoke_event": {
-    "jun8_ratio": 0.7622581144386693,
+    "jun8_ratio": 0.7622145792216702,
     "summer_weekday_days": 66,
     "pct_days_below_jun8": 0.09090909090909091,
-    "summer_ratio_median": 0.9675397032225801
+    "summer_ratio_median": 0.9674844436587432
   },
   "aqi_identification": {
     "between_day": {
-      "effect_per_50": -0.10939153612786266,
-      "ci_low": -0.14616111114082145,
-      "ci_high": -0.07261718846285804,
-      "se": 0.018584342544285218,
-      "mde80": 0.05207332780908718,
-      "mde90": 0.060250438528572675,
+      "effect_per_50": -0.10942423280373671,
+      "ci_low": -0.1461919904719212,
+      "ci_high": -0.07265356069044994,
+      "se": 0.018582572289427956,
+      "mde80": 0.05206836755497713,
+      "mde90": 0.06024469936232543,
       "n": 1096
     },
     "within_day": {
-      "effect_per_50": -0.02373577897542446,
-      "ci_low": -0.058769587319511596,
-      "ci_high": 0.011047667652282612,
-      "se": 0.01779400408339524,
-      "mde80": 0.049858799441673464,
-      "mde90": 0.05768816123836737,
+      "effect_per_50": -0.023735614721970624,
+      "ci_low": -0.058767925214885136,
+      "ci_high": 0.011046507873696047,
+      "se": 0.017793229545079853,
+      "mde80": 0.04985662918531375,
+      "mde90": 0.05768565018514889,
       "n": 881
     },
     "episodes": {
       "aqi_threshold": 100,
       "polluted_hours": 669,
       "polluted_days": 101,
-      "ride_ratio_vs_clean": 1.0083154619751407,
-      "ci_low": 0.9397320773183359,
-      "ci_high": 1.0851592842608597,
+      "ride_ratio_vs_clean": 1.0082946833259656,
+      "ci_low": 0.9397041449416373,
+      "ci_high": 1.0851534162888055,
       "median_aqi_polluted": 118.0
     },
     "measurement_error": {
@@ -217,17 +218,17 @@
         {
           "reliability": "assumed",
           "rho": 0.7,
-          "corrected_per_50": -0.0339082556791778
+          "corrected_per_50": -0.033908021031386605
         },
         {
           "reliability": "assumed",
           "rho": 0.5,
-          "corrected_per_50": -0.04747155795084892
+          "corrected_per_50": -0.04747122944394125
         },
         {
           "reliability": "assumed",
           "rho": 0.3,
-          "corrected_per_50": -0.07911926325141487
+          "corrected_per_50": -0.07911871573990209
         }
       ]
     }
@@ -325,23 +326,23 @@
       {
         "aqi_threshold": 80,
         "polluted_days": 191,
-        "ride_ratio_vs_clean": 0.9966518229120078,
-        "ci_low": 0.9514406218014929,
-        "ci_high": 1.0404420452375887
+        "ride_ratio_vs_clean": 0.9966295798322536,
+        "ci_low": 0.9514174775329154,
+        "ci_high": 1.0404208381360922
       },
       {
         "aqi_threshold": 100,
         "polluted_days": 101,
-        "ride_ratio_vs_clean": 1.0083154619751407,
-        "ci_low": 0.9397320773183359,
-        "ci_high": 1.0851592842608597
+        "ride_ratio_vs_clean": 1.0082946833259656,
+        "ci_low": 0.9397041449416373,
+        "ci_high": 1.0851534162888055
       },
       {
         "aqi_threshold": 120,
         "polluted_days": 52,
-        "ride_ratio_vs_clean": 1.0201557272587582,
-        "ci_low": 0.9069933936676001,
-        "ci_high": 1.1567979583267525
+        "ride_ratio_vs_clean": 1.02014081643178,
+        "ci_low": 0.906969075576951,
+        "ci_high": 1.156801761439737
       }
     ],
     "floor": [

@@ -22,14 +22,18 @@ The figures and tables in this directory come from the committed DC panel and th
 
 | Item | Value |
 | --- | --- |
-| DC panel | 26,288 network-hours, 2022–2024 |
+| DC panel | 26,289 network-hours, 2022–2024 |
 | Active hours | 24,354 hours with at least 20 expected rides |
 | Training split | 16,150 active hours, 2022–2023 |
 | Test split | 8,204 active hours, 2024 |
-| Missing calendar hours | 16 |
+| Missing calendar hours | 15: six ambiguous fall-back hours and nine without weather rows |
 | AQI coverage | 80.3% CAMS hourly values; EPA daily AQI for the remaining hours |
 
 The panel combines Capital Bikeshare rides, NOAA weather from Reagan National Airport (DCA), and AQI. An hour has low demand when rides fall below **50% of expected rides**. Expected rides use the 2022–2023 median for each season, weekday/weekend group and hour, adjusted by training-year ride volume. The 2024 target uses the 2023 volume adjustment.
+
+Ride counts cover each validated source month, including hours with zero recorded trips. Missing or invalid source archives stop the build; ambiguous timestamps remain unknown and are excluded before labeling. The [coverage audit](tables/zero_hour_audit.json) records all 36 archive hashes and the restored **2022-01-04 02:00 DC** hour. This hour has zero recorded trips and fewer than 20 expected rides, so the active-hour counts and model inputs are unchanged.
+
+The correction preserves existing weather, AQI and PM2.5 values from the saved panel. The added January hour uses the original NOAA and EPA records; historical CAMS values were not fetched again. Expected rides and labels were recalculated across the panel, then the DC analysis and browser export were rerun.
 
 ## Historical evaluation
 
