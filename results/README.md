@@ -35,6 +35,10 @@ Ride counts cover each validated source month, including hours with zero recorde
 
 The correction preserves existing weather, AQI and PM2.5 values from the saved panel. The added January hour uses the original NOAA and EPA records; historical CAMS values were not fetched again. Expected rides and labels were recalculated across the panel, then the DC analysis and browser export were rerun.
 
+AQI effects are reported only when exposure varies independently of the controls and fixed effects. [Coefficient diagnostics](tables/aqi_identification.csv) record matrix rank, residual exposure variation and usable bootstrap draws. Unidentified effects have no coefficient or detectable-effect estimate.
+
+The [smoke comparison](tables/smoke_episodes.csv) resamples complete source days and refits the clean season-hour reference in each draw. It includes uncertainty in both groups and preserves days that contain both. AQI and smoke intervals require at least 80% usable draws and condition on the saved expected-ride baseline. If draws are unusable, uncertainty also conditions on the retained draws; the draw threshold does not guarantee interval coverage. See the [methods](../docs/pipeline.md#6-trace-the-additional-analyses-separately) for support rules and unavailable estimates.
+
 ## Historical evaluation
 
 | Model | AUROC ↑ | Average precision ↑ | Brier score ↓ | Calibration error (ECE) ↓ |

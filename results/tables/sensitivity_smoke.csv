@@ -1,4 +1,4 @@
-aqi_threshold,polluted_days,ride_ratio_vs_clean,ci_low,ci_high
-80,191,0.9966295798322536,0.9514174775329154,1.0404208381360922
-100,101,1.0082946833259656,0.9397041449416373,1.0851534162888055
-120,52,1.02014081643178,0.906969075576951,1.156801761439737
+aqi_threshold,polluted_days,ride_ratio_vs_clean,ci_low,ci_high,clean_days,bootstrap_method,bootstrap_conditioning,bootstrap_requested,bootstrap_valid,uncertainty_status
+80,191,0.9966295798322536,0.9538317746464904,1.0448341757074104,1075,joint day-cluster; clean reference refit,draws with complete positive clean support,1000,1000,available
+100,101,1.0082946833259656,0.9287713262891762,1.091317008980681,1090,joint day-cluster; clean reference refit,draws with complete positive clean support,1000,1000,available
+120,52,1.02014081643178,0.9019800016230425,1.1743918142030265,820,joint day-cluster; clean reference refit,draws with complete positive clean support,1000,1000,available

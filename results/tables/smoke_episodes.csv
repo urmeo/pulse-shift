@@ -1,2 +1,2 @@
-aqi_threshold,polluted_hours,polluted_days,ride_ratio_vs_clean,ci_low,ci_high,median_aqi_polluted
-100,669,101,1.0082946833259656,0.9397041449416373,1.0851534162888055,118.0
+aqi_threshold,polluted_hours,polluted_days,clean_days,ride_ratio_vs_clean,ci_low,ci_high,median_aqi_polluted,bootstrap_method,bootstrap_conditioning,bootstrap_requested,bootstrap_valid,uncertainty_status
+100,669,101,1090,1.0082946833259656,0.9287713262891762,1.091317008980681,118.0,joint day-cluster; clean reference refit,draws with complete positive clean support,1000,1000,available

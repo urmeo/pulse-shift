@@ -1,3 +1,3 @@
-identification,effect_per_50,ci_low,ci_high,se,n
-between-day (controlled),-0.10942423280373671,-0.1461919904719212,-0.07265356069044994,0.018582572289427956,1096
-within-day fixed effects,-0.023735614721970624,-0.058767925214885136,0.011046507873696047,0.017793229545079853,881
+identification,effect_per_50,ci_low,ci_high,se,n,identified,design_rank,design_columns,exposure_residual_fraction,rank_tolerance,exposure_tolerance,bootstrap_method,bootstrap_conditioning,bootstrap_requested,bootstrap_valid,uncertainty_status
+between-day (controlled),-0.10942423280373696,-0.1461919904719213,-0.07265356069045045,0.018582572289427952,1096,True,10,10,0.7479246922153023,2.433608869978343e-13,1.4901161193847656e-08,rows,draws with identifiable exposure,1000,1000,available
+within-day fixed effects,-0.023735614721973636,-0.058767925214884366,0.01104650787369503,0.017793229545079815,881,True,29,29,0.9045663570597154,4.367173289665516e-12,1.4901161193847656e-08,day-cluster,draws with identifiable exposure,1000,1000,available

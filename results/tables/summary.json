@@ -1,12 +1,12 @@
 {
   "provenance": {
-    "generated_at_utc": "2026-10-14T19:45:01.309034+00:00",
-    "source_commit": "b0c1ae92732660aa56989751ad8f382e38c8ff8a",
+    "generated_at_utc": "2026-10-14T20:19:19.799725+00:00",
+    "source_commit": "8b26d1b8220938494e93b803d2114cfea04b74b3",
     "source_dirty": false,
-    "source_sha256": "d701c55122e346f3978f21a8d2b19f164d61275e258e8f18662ffcfdd4d38d7d",
+    "source_sha256": "3c303717259ff88d55e9b87682778930da29420377180d76db440f90ee40592f",
     "source_files_sha256": {
       "research/pulseshift/__init__.py": "6a09c7098968c3e1d4de8fbd2e7b7fd0ad791ca4f8b811be7128baee3cb50da2",
-      "research/pulseshift/airquality.py": "0ad0faaed706da0e484fdb6caf08c76ca789a558f3f4113b139ab2f019f34045",
+      "research/pulseshift/airquality.py": "b7faae09c50dfb57439b6eee49f476ee74467f11ddd37ccc9682e3cb3a455236",
       "research/pulseshift/calibration.py": "9047251d6efd611f0bf70e059438a679cf22269701a85fed92d513293548f7e6",
       "research/pulseshift/config.py": "6688e9d29ecda1f3ae4e5579d7403efbf827b480c12ef8309ca7c5cf0d86bb35",
       "research/pulseshift/decision.py": "66f848516d53f4597917fe5a0fcc8277ca9df68cc8ccfc7b80174b21fc94048a",
@@ -16,14 +16,14 @@
       "research/pulseshift/ingest.py": "51a31994bd701b1a0cc1ba80479e2848be3f04619348a5bb22a906461bb3ef59",
       "research/pulseshift/models.py": "d405bf546dffb9e0f2044d5be636bbb343c9db53162c221ef00090213a14be41",
       "research/pulseshift/panel.py": "383343c1e1f8106cb101bf0a68fac55300faf7ebe64323b1d5a325f993aace4d",
-      "research/pulseshift/plots.py": "e765b4f93151ced46fbdf4f2ebc905114e47c67343a307bcd2de74ec1091eea2",
+      "research/pulseshift/plots.py": "ca9eb8ba2bcf57578f2ce8b30048d7f9d6c8901f5981f88826e0f11458b9d22a",
       "research/pulseshift/provenance.py": "3d306c4a74dda1d2e51d81abfa1399dec1857b1803cd65d63e612d5a2b8a1cec",
       "research/pulseshift/ram.py": "f6b3d0f0ed18960c58fc85b0d44a6c12eaba25f971edf43fc3561b9f27aa0b11",
       "research/pulseshift/report.py": "2e7bf2ed720ab41a81c7ab6ca911cbf7f8343ed1e89d9c4770b1acdcb39849ee",
       "research/pulseshift/safety.py": "60bb49ce9a7fdc5b4a4dce50d6fdb6b7c29e64305408d3286f264cb897d6e442",
       "research/pulseshift/tables.py": "a4f5027ee1383d4edd565365ca3599face4b400379c36afb78979b84d4431936",
       "research/scripts/build_data.py": "3cf7f47b7de6fc4da3e4cbe97f2da262dc7890510536e4a63db85ee5d1fa72ef",
-      "research/scripts/run_analysis.py": "d8738c944a5c795381b274e592f680b75ce30129406dbd68d5f612beb1f6f9da",
+      "research/scripts/run_analysis.py": "5302d5300925585bb4bfce30b969c870cc5cca581be5ac0849ea88d5703d7a84",
       "research/scripts/train_model.py": "660e22c76b555a6561c210d1a62741f8af6f0a6afeac5bdf45e4475428661d9a",
       "research/scripts/validate_seoul.py": "a2b313411cb87ffe328c452be10e26da40d30079b458fe8efd1035bb84f789bd",
       "research/scripts/verify.py": "724cf2e63752ae4b353a261d0e6461f63c24a66af557bd52fa5d572df38af255",
@@ -182,31 +182,59 @@
   },
   "aqi_identification": {
     "between_day": {
-      "effect_per_50": -0.10942423280373671,
-      "ci_low": -0.1461919904719212,
-      "ci_high": -0.07265356069044994,
-      "se": 0.018582572289427956,
-      "mde80": 0.05206836755497713,
-      "mde90": 0.06024469936232543,
-      "n": 1096
+      "effect_per_50": -0.10942423280373696,
+      "ci_low": -0.1461919904719213,
+      "ci_high": -0.07265356069045045,
+      "se": 0.018582572289427952,
+      "mde80": 0.052068367554977124,
+      "mde90": 0.06024469936232542,
+      "n": 1096,
+      "identified": true,
+      "design_rank": 10,
+      "design_columns": 10,
+      "exposure_residual_fraction": 0.7479246922153023,
+      "rank_tolerance": 2.433608869978343e-13,
+      "exposure_tolerance": 1.4901161193847656e-08,
+      "bootstrap_method": "rows",
+      "bootstrap_conditioning": "draws with identifiable exposure",
+      "bootstrap_requested": 1000,
+      "bootstrap_valid": 1000,
+      "uncertainty_status": "available"
     },
     "within_day": {
-      "effect_per_50": -0.023735614721970624,
-      "ci_low": -0.058767925214885136,
-      "ci_high": 0.011046507873696047,
-      "se": 0.017793229545079853,
-      "mde80": 0.04985662918531375,
-      "mde90": 0.05768565018514889,
-      "n": 881
+      "effect_per_50": -0.023735614721973636,
+      "ci_low": -0.058767925214884366,
+      "ci_high": 0.01104650787369503,
+      "se": 0.017793229545079815,
+      "mde80": 0.049856629185313646,
+      "mde90": 0.05768565018514876,
+      "n": 881,
+      "identified": true,
+      "design_rank": 29,
+      "design_columns": 29,
+      "exposure_residual_fraction": 0.9045663570597154,
+      "rank_tolerance": 4.367173289665516e-12,
+      "exposure_tolerance": 1.4901161193847656e-08,
+      "bootstrap_method": "day-cluster",
+      "bootstrap_conditioning": "draws with identifiable exposure",
+      "bootstrap_requested": 1000,
+      "bootstrap_valid": 1000,
+      "uncertainty_status": "available"
     },
     "episodes": {
       "aqi_threshold": 100,
       "polluted_hours": 669,
       "polluted_days": 101,
+      "clean_days": 1090,
       "ride_ratio_vs_clean": 1.0082946833259656,
-      "ci_low": 0.9397041449416373,
-      "ci_high": 1.0851534162888055,
-      "median_aqi_polluted": 118.0
+      "ci_low": 0.9287713262891762,
+      "ci_high": 1.091317008980681,
+      "median_aqi_polluted": 118.0,
+      "bootstrap_method": "joint day-cluster; clean reference refit",
+      "bootstrap_conditioning": "draws with complete positive clean support",
+      "bootstrap_requested": 1000,
+      "bootstrap_valid": 1000,
+      "uncertainty_status": "available"
     },
     "measurement_error": {
       "daily_comparison": "EPA daily AQI versus CAMS hourly daily mean",
@@ -218,20 +246,21 @@
         {
           "reliability": "assumed",
           "rho": 0.7,
-          "corrected_per_50": -0.033908021031386605
+          "corrected_per_50": -0.03390802103139091
         },
         {
           "reliability": "assumed",
           "rho": 0.5,
-          "corrected_per_50": -0.04747122944394125
+          "corrected_per_50": -0.04747122944394727
         },
         {
           "reliability": "assumed",
           "rho": 0.3,
-          "corrected_per_50": -0.07911871573990209
+          "corrected_per_50": -0.07911871573991212
         }
       ]
-    }
+    },
+    "conditioning": "Saved expected-ride baseline; not a full pipeline bootstrap"
   },
   "aqi_coefficient": [
     {
@@ -327,22 +356,40 @@
         "aqi_threshold": 80,
         "polluted_days": 191,
         "ride_ratio_vs_clean": 0.9966295798322536,
-        "ci_low": 0.9514174775329154,
-        "ci_high": 1.0404208381360922
+        "ci_low": 0.9538317746464904,
+        "ci_high": 1.0448341757074104,
+        "clean_days": 1075,
+        "bootstrap_method": "joint day-cluster; clean reference refit",
+        "bootstrap_conditioning": "draws with complete positive clean support",
+        "bootstrap_requested": 1000,
+        "bootstrap_valid": 1000,
+        "uncertainty_status": "available"
       },
       {
         "aqi_threshold": 100,
         "polluted_days": 101,
         "ride_ratio_vs_clean": 1.0082946833259656,
-        "ci_low": 0.9397041449416373,
-        "ci_high": 1.0851534162888055
+        "ci_low": 0.9287713262891762,
+        "ci_high": 1.091317008980681,
+        "clean_days": 1090,
+        "bootstrap_method": "joint day-cluster; clean reference refit",
+        "bootstrap_conditioning": "draws with complete positive clean support",
+        "bootstrap_requested": 1000,
+        "bootstrap_valid": 1000,
+        "uncertainty_status": "available"
       },
       {
         "aqi_threshold": 120,
         "polluted_days": 52,
         "ride_ratio_vs_clean": 1.02014081643178,
-        "ci_low": 0.906969075576951,
-        "ci_high": 1.156801761439737
+        "ci_low": 0.9019800016230425,
+        "ci_high": 1.1743918142030265,
+        "clean_days": 820,
+        "bootstrap_method": "joint day-cluster; clean reference refit",
+        "bootstrap_conditioning": "draws with complete positive clean support",
+        "bootstrap_requested": 1000,
+        "bootstrap_valid": 1000,
+        "uncertainty_status": "available"
       }
     ],
     "floor": [

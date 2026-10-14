@@ -104,6 +104,12 @@ The app's 2024 AUROC and Brier metadata describe a separate 2022–2023-trained 
 
 The [AQI analysis](../research/pulseshift/airquality.py) is observational. Different daily and hourly exposures and controls do not establish causality.
 
+AQI coefficients require variation outside the intercept, weather controls and applicable fixed effects. Centered, scaled columns undergo SVD rank checks before fitting: AQI must increase the nuisance matrix's rank. The rank tolerance is machine epsilon multiplied by the larger matrix dimension. Redundant nuisance columns are represented by an independent basis. AQI must also retain a fraction of its centered norm greater than √machine epsilon after nuisance adjustment. The same checks run in every bootstrap draw. Unidentified effects have no coefficient, interval or detectable-effect estimate. Intervals and detectable effects also require at least 80% of requested draws to be usable; the tables record rank, residual exposure variation and draw counts.
+
+Smoke comparisons resample whole source days jointly, retaining each day's clean and polluted hours together. Every draw refits the clean season-hour reference before calculating the polluted-hour ratio. Draws without positive clean support for every sampled polluted stratum are unavailable. An interval requires at least two clean and two polluted days and 80% usable draws. These AQI and smoke intervals condition on the saved expected-ride baseline; they do not include uncertainty from refitting that baseline.
+
+If any draws are unusable, the reported interval and standard error condition on the retained draws. The 80% threshold is an availability rule, not a guarantee of interval coverage.
+
 [validate_seoul.py](../research/scripts/validate_seoul.py) keeps the earliest 75% and latest 25% of functioning dates **within each season** as training and test blocks. It fits the target baseline only on training dates and trains a separate **10-feature** logistic model without AQI or smoke/haze. It does not transfer DC coefficients or use a global chronological forecast split. Dataset hashes and dates are recorded in [Seoul provenance](../results/tables/seoul_provenance.json).
 
 ## Reproduce and inspect
