@@ -4,12 +4,12 @@ PulseShift estimates the chance that hourly Capital Bikeshare rides fall below h
 
 <a href="results/figures/pipeline.svg">
   <picture>
-    <source media="(max-width: 640px)" srcset="results/figures/pipeline-mobile.svg">
-    <img src="results/figures/pipeline.svg" alt="Shared DC records become labeled hours for two separate model paths: historical testing and the browser refit. The fixed browser model scores manual conditions or forecasts; only forecasts enter hour selection. Other research covers AQI and smoke associations and an independent Seoul refit.">
+    <source media="(max-width: 640px)" srcset="results/figures/pipeline-mobile.svg" width="360" height="2704">
+    <img src="results/figures/pipeline.svg" width="1280" height="1440" alt="PulseShift signal flow: DC records become a verified hourly panel, low-demand labels and 12 features. Separate historical and browser fits lead to evaluation and fixed-model scoring. Only forecast scores enter hour selection. Candidate-hour limits, DC AQI associations and an independent Seoul refit complete the pipeline.">
   </picture>
 </a>
 
-[Pipeline details](docs/pipeline.md) · [Figma source](https://www.figma.com/design/yhY22TCHa8m8mhBi1Z4RCw?node-id=2-2)
+[Figma source](https://www.figma.com/design/yhY22TCHa8m8mhBi1Z4RCw?node-id=2-2) · [Pipeline details](docs/pipeline.md)
 
 [Open the app](https://urmeo.github.io/pulse-shift/) · [Visual report](https://urmeo.github.io/pulse-shift/results/) · [Data and methods](results/README.md)
 

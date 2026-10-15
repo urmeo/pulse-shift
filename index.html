@@ -73,8 +73,8 @@
       <h2 id="pipeline-title">Bike-share demand pipeline</h2>
       <figure>
         <picture>
-          <source media="(max-width: 640px)" srcset="results/figures/pipeline-mobile.svg" width="360" height="2400">
-          <img class="pipeline-image" src="results/figures/pipeline.svg" width="1280" height="1360" loading="lazy" alt="DC rides, weather and AQI become labeled hours. Historical evaluation trains on 2022–2023, tests on 2024 and simulates same-day shifts. Browser use refits on 2022–2024, scores manual or forecast conditions and selects forecast hours within study limits. AQI and smoke analyses and a separate Seoul refit provide supporting research.">
+          <source media="(max-width: 640px)" srcset="results/figures/pipeline-mobile.svg" width="360" height="2704">
+          <img class="pipeline-image" src="results/figures/pipeline.svg" width="1280" height="1440" loading="lazy" alt="PulseShift signal flow: DC records become a verified hourly panel, low-demand labels and 12 features. Separate historical and browser fits lead to evaluation and fixed-model scoring. Only forecast scores enter hour selection. Candidate-hour limits, DC AQI associations and an independent Seoul refit complete the pipeline.">
         </picture>
         <figcaption>A research prototype for aggregate bike-share demand. Historical evaluation and browser use follow separate paths.</figcaption>
       </figure>
@@ -94,7 +94,7 @@
           </tbody>
         </table>
         <p>Climatology uses the training low-demand rate for each season, day type and hour. AUROC measures ranking. The unweighted model's 95% interval is 0.900–0.967, from 1,000 whole-day bootstrap resamples. Its mean prediction was 6.88%, compared with 2.46% observed; probabilities overestimated the 2024 event rate.</p>
-        <p>The time-shift simulation uses the unweighted model's 2024 test estimates and recorded conditions. It compares hours within ±3 hours on the same day, requiring heat index below 103°F and AQI below 150 at the chosen hour. Predicted recovery assumes demand transfers; actual benefits were not measured.</p>
+        <p>The time-shift simulation uses the unweighted model's 2024 test estimates and recorded conditions. It compares hours within ±3 hours on the same day, requiring heat index below 103°F and AQI below 150 at the chosen hour. Net modeled change includes cancellation and shift losses. Shifted demand is assumed to transfer; actual benefits were not measured.</p>
         <h3>Browser use</h3>
         <p>Separately refit unweighted logistic regression on all 24,354 active hours from 2022–2024. Export fixed scaling parameters and coefficients to estimate the chance of low demand from manual inputs or DC forecasts. The historical scores above evaluate the earlier fit.</p>
         <p>Forecasts use Open-Meteo weather and CAMS AQI. Compare complete hours in the next 24 hours, from 06:00 to 21:00 DC time, with heat index below 103°F and AQI below 150. Choose the lowest estimated probability. These are study limits; follow official advisories. Live forecast accuracy has not been prospectively evaluated.</p>
@@ -103,7 +103,7 @@
         <p>The Seoul analysis fits a separate 10-feature model on its own UCI dataset. Within each season, train on the earliest 75% of functioning dates and test on the latest 25%, keeping whole dates together.</p>
         <p>Research checks do not change the browser parameters. The project estimates aggregate network demand, not individual activity or health outcomes.</p>
       </details>
-      <p class="pipeline-links"><a href="results/">Charts and results</a> · <a href="https://github.com/urmeo/pulse-shift/blob/main/docs/pipeline.md">Data, methods and limits</a></p>
+      <p class="pipeline-links"><a href="https://www.figma.com/design/yhY22TCHa8m8mhBi1Z4RCw?node-id=2-2">Figma source</a> · <a href="results/">Charts and results</a> · <a href="https://github.com/urmeo/pulse-shift/blob/main/docs/pipeline.md">Data, methods and limits</a></p>
     </section>
   </main>
 

@@ -193,6 +193,7 @@ footer {
   }
   .metrics div { padding: 16px; }
   .metrics strong { font-size: 1.6rem; }
+  .pipeline { max-width: 360px; margin-inline: auto; }
   .pipeline-steps { grid-template-columns: 1fr; }
   .links { grid-template-columns: 1fr; }
   th, td { padding: 10px 12px; }

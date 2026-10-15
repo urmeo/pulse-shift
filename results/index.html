@@ -32,8 +32,8 @@
       <h2 id="pipeline-title">Project pipeline</h2>
       <a href="figures/pipeline.svg">
         <picture>
-          <source media="(max-width: 640px)" srcset="figures/pipeline-mobile.svg">
-          <img class="pipeline" src="figures/pipeline.svg" alt="Labeled DC hours feed two separate paths: historical evaluation on 2024 data and an all-years browser refit. The browser estimates demand from manual conditions or forecasts; only forecasts compare eligible hours. Other research studies AQI and smoke and fits a separate Seoul model.">
+          <source media="(max-width: 640px)" srcset="figures/pipeline-mobile.svg" width="360" height="2704">
+          <img class="pipeline" src="figures/pipeline.svg" width="1280" height="1440" alt="PulseShift signal flow: DC records become a verified hourly panel, low-demand labels and 12 features. Separate historical and browser fits lead to evaluation and fixed-model scoring. Only forecast scores enter hour selection. Candidate-hour limits, DC AQI associations and an independent Seoul refit complete the pipeline.">
         </picture>
       </a>
       <details>
@@ -47,7 +47,7 @@
           <li>
             <h3>Historical evaluation</h3>
             <p>Train five models on 16,150 active hours in 2022–2023; test on 8,204 in 2024. Compare curves and scores. Report whole-day bootstrap intervals for the unweighted model.</p>
-            <p>Simulate same-day shifts of up to three hours using historical unweighted predictions. Recovery assumes demand transfers to the chosen hour; actual ride recovery was not measured.</p>
+            <p>Simulate same-day shifts of up to three hours using historical unweighted predictions. Net modeled change includes cancellation and shift losses. Shifted demand is assumed to transfer; actual benefits were not measured.</p>
           </li>
           <li>
             <h3>Browser model</h3>
@@ -61,7 +61,7 @@
           </li>
         </ul>
       </details>
-      <p class="note">The historical unweighted model overestimates probabilities. Live forecast accuracy and actual ride recovery remain unmeasured. <a href="https://github.com/urmeo/pulse-shift/blob/main/docs/pipeline.md">Pipeline methods</a>.</p>
+      <p class="note">The historical unweighted model overestimates probabilities. Live forecast accuracy and actual ride recovery remain unmeasured. <a href="https://www.figma.com/design/yhY22TCHa8m8mhBi1Z4RCw?node-id=2-2">Figma source</a> · <a href="https://github.com/urmeo/pulse-shift/blob/main/docs/pipeline.md">Pipeline methods</a>.</p>
     </section>
 
     <section aria-labelledby="evaluation-title">

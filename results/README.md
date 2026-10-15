@@ -13,7 +13,7 @@ The figures and tables in this directory come from the committed DC panel and th
 | [Model comparison](figures/model_comparison.png) | AUROC, average precision and probability error across five models | [Model scores](tables/model_comparison.csv) |
 | [Calibration](figures/reliability.png) | Predicted probabilities compared with observed rates | [Predictions](tables/holdout_predictions.csv) |
 | [Decision curve](figures/decision_curve.png) | Modeled net benefit across decision thresholds | [Decision scores](tables/decision_curve.csv) |
-| [Monthly time-shift scenario](figures/ram_by_month.png) | Ride-weighted predicted-risk reduction from simulated shifts | [Policy predictions](tables/policy_predictions.csv) |
+| [Monthly time-shift scenario](figures/ram_by_month.png) | Net risk-weighted ride change, including cancellation and shift losses | [Policy predictions](tables/policy_predictions.csv) |
 | [Heat and AQI associations](figures/exposure_response.png) | Unadjusted low-demand rates by exposure level | [Exposure response](tables/exposure_response.csv) |
 | [Daily and hourly AQI associations](figures/aqi_identification.png) | Estimated ride-ratio changes with different exposures and controls | [AQI estimates](tables/aqi_identification.csv) |
 | [June 2023 smoke event](figures/smoke_event.png) | AQI and network rides during the DC wildfire-smoke episode | [Event summary](tables/smoke_event.csv) |

@@ -6,8 +6,8 @@ DC rides, weather and AQI become hourly examples with a shared low-demand defini
 
 <a href="../results/figures/pipeline.svg">
   <picture>
-    <source media="(max-width: 640px)" srcset="../results/figures/pipeline-mobile.svg">
-    <img src="../results/figures/pipeline.svg" alt="DC rides, weather and AQI become labeled hours. Historical evaluation trains on 2022–2023, tests on 2024 and simulates same-day shifts. Browser use refits on 2022–2024, scores manual or forecast conditions and selects forecast hours within study limits. AQI and smoke analyses and a separate Seoul refit provide supporting research.">
+    <source media="(max-width: 640px)" srcset="../results/figures/pipeline-mobile.svg" width="360" height="2704">
+    <img src="../results/figures/pipeline.svg" width="1280" height="1440" alt="PulseShift signal flow: DC records become a verified hourly panel, low-demand labels and 12 features. Separate historical and browser fits lead to evaluation and fixed-model scoring. Only forecast scores enter hour selection. Candidate-hour limits, DC AQI associations and an independent Seoul refit complete the pipeline.">
   </picture>
 </a>
 
@@ -15,6 +15,8 @@ DC rides, weather and AQI become hourly examples with a shared low-demand defini
 - **Browser use:** refit on all active 2022–2024 hours and export fixed parameters. Manual inputs give one estimate; forecasts also let the app compare eligible hours.
 
 AQI and smoke analyses and an independent Seoul refit support the research. These checks do not change the browser parameters. This is a prototype for aggregate bike-share demand; live forecast accuracy and actual time-shift benefits remain unmeasured.
+
+The [design notes](figma/README.md) link the editable desktop and mobile frames, native exports and previous Figma design.
 
 ## 1. Assemble the DC panel
 
