@@ -63,9 +63,52 @@ def prepare(df: pd.DataFrame) -> pd.DataFrame:
         if normalized_name in {"hour", "date"}:
             column_names[column] = normalized_name
     df = df.rename(columns=column_names)
+    required = {
+        "date",
+        "hour",
+        "rides",
+        "temp_c",
+        "humidity",
+        "wind_ms",
+        "visibility",
+        "rain_mm",
+        "season",
+        "functioning",
+    }
+    if not df.columns.is_unique or not required.issubset(df.columns):
+        raise ValueError("Seoul data require unique columns and all model inputs")
+    df["date"] = pd.to_datetime(df["date"], format="%d/%m/%Y")
+    numeric = [
+        "hour",
+        "rides",
+        "temp_c",
+        "humidity",
+        "wind_ms",
+        "visibility",
+        "rain_mm",
+    ]
+    df[numeric] = df[numeric].apply(pd.to_numeric, errors="raise")
+    if not np.isfinite(df[numeric].to_numpy()).all():
+        raise ValueError("Seoul model inputs and observed counts must be finite")
+    if (
+        not df["hour"].between(0, 23).all()
+        or not df["hour"].mod(1).eq(0).all()
+        or not df["rides"].ge(0).all()
+        or not df["rides"].mod(1).eq(0).all()
+        or not df["humidity"].between(0, 100).all()
+        or not df[["wind_ms", "visibility", "rain_mm"]].ge(0).all().all()
+    ):
+        raise ValueError("Seoul counts, hours and weather units are invalid")
+    if (
+        not df["functioning"].isin(["Yes", "No"]).all()
+        or not df["season"].isin(["Winter", "Spring", "Summer", "Autumn"]).all()
+        or df["date"].isna().any()
+        or df.duplicated(["date", "hour"]).any()
+    ):
+        raise ValueError("Seoul rows require valid categories and unique date-hours")
     df = df[df["functioning"] == "Yes"].copy()
-
-    df["date"] = pd.to_datetime(df["date"], dayfirst=True)
+    if df.empty:
+        raise ValueError("Seoul data contain no functioning hours")
     df["is_weekend"] = (df["date"].dt.dayofweek >= 5).astype(int)
     df["daytype"] = np.where(df["is_weekend"] == 1, "weekend", "weekday")
     df["temp_f"] = df["temp_c"] * 9 / 5 + 32
@@ -84,8 +127,12 @@ def season_day_split(df: pd.DataFrame, train_fraction: float = 0.75) -> pd.DataF
     """Within each season, hold out the latest dates as whole day blocks."""
     if not 0 < train_fraction < 1:
         raise ValueError("train_fraction must be strictly between 0 and 1")
-    if df["date"].isna().any() or df["season"].isna().any():
+    if df.empty or df["date"].isna().any() or df["season"].isna().any():
         raise ValueError("Seoul split requires valid dates and seasons")
+    if not df["date"].eq(df["date"].dt.normalize()).all():
+        raise ValueError("Seoul split requires dates without time components")
+    if df.duplicated(["date", "hour"]).any():
+        raise ValueError("Seoul split requires unique date-hours")
     if df.groupby("date")["season"].nunique().gt(1).any():
         raise ValueError("each Seoul date must belong to one season")
     train_days = []
@@ -104,22 +151,30 @@ def season_day_split(df: pd.DataFrame, train_fraction: float = 0.75) -> pd.DataF
 
 def label_panel(df: pd.DataFrame) -> pd.DataFrame:
     df = season_day_split(df)
+    observed = np.isfinite(df["rides"]) & df["rides"].ge(0)
     expected_by_hour = (
-        df[df["is_train"]].groupby(["season", "daytype", "hour"])["rides"].median()
+        df[df["is_train"] & observed]
+        .groupby(["season", "daytype", "hour"])["rides"]
+        .median()
     )
     df["expected"] = expected_by_hour.reindex(
         pd.MultiIndex.from_frame(df[["season", "daytype", "hour"]])
     ).to_numpy()
-    df = df.dropna(subset=["expected"])
-    df = df[df["expected"] >= config.EXPECTED_FLOOR].reset_index(drop=True)
-    _, suppressed = suppression_mask(df["rides"].to_numpy(), df["expected"].to_numpy())
-    df["suppressed"] = suppressed.astype(int)
+    eligible, suppressed = suppression_mask(
+        df["rides"].to_numpy(), df["expected"].to_numpy()
+    )
+    df = df[eligible].reset_index(drop=True)
+    df["suppressed"] = suppressed[eligible].astype(int)
     return df
 
 
 def main() -> None:
-    df = label_panel(prepare(load_seoul()))
+    source = load_seoul()
+    functioning = prepare(source)
+    df = label_panel(functioning)
     train, test = df[df["is_train"]], df[~df["is_train"]]
+    if train.empty or test.empty:
+        raise ValueError("Seoul validation requires eligible training and test hours")
     model = fit_logistic(train, balanced=False, features=FEATURES)
     probabilities = predict(model, test, features=FEATURES)
     results = metrics(test["suppressed"], probabilities)
@@ -142,6 +197,7 @@ def main() -> None:
                 "ece": results["ece"],
                 "cal_slope": results["cal_slope"],
                 "cal_intercept": results["cal_intercept"],
+                "calibration_status": results["calibration_status"],
             }
         ]
     )
@@ -153,12 +209,26 @@ def main() -> None:
         "seoul_predictions",
     )
     provenance = artifact_provenance()
+    for key in ("panel_sha256", "air_quality", "safety_rails"):
+        provenance.pop(key, None)
+    provenance["label"] = {
+        "ratio": config.SUPPRESSION_RATIO,
+        "expected_floor": config.EXPECTED_FLOOR,
+        "climatology": "training-date season × daytype × hour median",
+    }
     provenance["seoul"] = {
         "source_url": URL,
         "zip_sha256": file_sha256(config.RAW / "seoul.zip"),
         "split": "earliest 75% / latest 25% unique functioning dates within each season",
         "chronology": "ordered within seasons; not a global chronological forecast holdout",
         "features": FEATURES,
+        "coverage": {
+            "source_rows": len(source),
+            "functioning_hours": len(functioning),
+            "eligible_hours": len(df),
+            "excluded_functioning_hours": len(functioning) - len(df),
+            "zero_recorded_trip_hours": int(functioning["rides"].eq(0).sum()),
+        },
         "train_dates": sorted(train["date"].dt.strftime("%Y-%m-%d").unique().tolist()),
         "test_dates": sorted(test["date"].dt.strftime("%Y-%m-%d").unique().tolist()),
         "dc_coefficients_transferred": False,

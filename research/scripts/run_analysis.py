@@ -17,7 +17,11 @@ from sklearn.pipeline import Pipeline
 
 from pulseshift import airquality, config, decision, equity, plots, ram, report, safety
 from pulseshift.calibration import calibrate_cv
-from pulseshift.evaluation import bootstrap_ci, expected_calibration_error, metrics
+from pulseshift.evaluation import (
+    bootstrap_interval,
+    expected_calibration_error,
+    metrics,
+)
 from pulseshift.features import MODEL_FEATURES
 from pulseshift.models import (
     ClimatologyBaseline,
@@ -77,18 +81,20 @@ def holdout_confidence_intervals(test: pd.DataFrame, probabilities: np.ndarray) 
     labels = test["suppressed"].to_numpy()
     days = test["ts_local"].dt.normalize().to_numpy()
     confidence_intervals = {
-        "auroc": bootstrap_ci(
+        "auroc": bootstrap_interval(
             labels, probabilities, roc_auc_score, require_two_classes=True, groups=days
         ),
-        "auprc": bootstrap_ci(
+        "auprc": bootstrap_interval(
             labels,
             probabilities,
             average_precision_score,
             require_two_classes=True,
             groups=days,
         ),
-        "brier": bootstrap_ci(labels, probabilities, brier_score_loss, groups=days),
-        "ece": bootstrap_ci(
+        "brier": bootstrap_interval(
+            labels, probabilities, brier_score_loss, groups=days
+        ),
+        "ece": bootstrap_interval(
             labels,
             probabilities,
             expected_calibration_error,
@@ -98,8 +104,17 @@ def holdout_confidence_intervals(test: pd.DataFrame, probabilities: np.ndarray) 
     write_table(
         pd.DataFrame(
             [
-                {"metric": metric, "low": low, "high": high}
-                for metric, (low, high) in confidence_intervals.items()
+                {
+                    "metric": metric,
+                    "low": interval["ci_low"],
+                    "high": interval["ci_high"],
+                    **{
+                        key: value
+                        for key, value in interval.items()
+                        if key not in ("ci_low", "ci_high")
+                    },
+                }
+                for metric, interval in confidence_intervals.items()
             ]
         ),
         "served_ci",
@@ -124,7 +139,7 @@ def coefficients_and_exposure(
         ("aqi", [0, 50, 75, 100, 150, 400]),
     ]:
         for interval, group in active_hours.groupby(
-            pd.cut(active_hours[variable], edges), observed=True
+            pd.cut(active_hours[variable], edges, include_lowest=True), observed=True
         ):
             rows.append(
                 {
@@ -159,13 +174,13 @@ def decision_and_cost(test: pd.DataFrame, probabilities: np.ndarray) -> list:
     for ratio in (5, 10, 20):
         threshold = 1 / (1 + ratio)
         flagged = probabilities >= threshold
-        tn, fp, fn, tp = confusion_matrix(labels, flagged).ravel()
+        tn, fp, fn, tp = confusion_matrix(labels, flagged, labels=[0, 1]).ravel()
         cost_rows.append(
             {
                 "cost_ratio_miss_to_flag": ratio,
                 "threshold": round(threshold, 3),
-                "sensitivity": round(tp / (tp + fn), 3),
-                "specificity": round(tn / (tn + fp), 3),
+                "sensitivity": round(tp / (tp + fn), 3) if tp + fn else None,
+                "specificity": round(tn / (tn + fp), 3) if tn + fp else None,
                 "flagged_share": round(float(flagged.mean()), 3),
             }
         )
@@ -207,7 +222,7 @@ def figures(
 
 def recovered_active_minutes(
     test: pd.DataFrame, probabilities: np.ndarray
-) -> tuple[pd.DataFrame, dict, dict, list]:
+) -> tuple[pd.DataFrame, dict, dict, dict]:
     """Estimate a time-shift scenario from predicted risk and bootstrap by day."""
     scored = test.assign(risk=probabilities)
     recommendations = ram.recommend(scored)
@@ -232,28 +247,10 @@ def recovered_active_minutes(
         "policy_predictions",
     )
 
-    by_day = (
-        pd.DataFrame(
-            {
-                "day": recommendations["ts_local"].dt.date.to_numpy(),
-                "recovered": ram_stats["per_hour"].to_numpy(),
-                "lost": (
-                    recommendations["expected_rides"] * recommendations["risk"]
-                ).to_numpy(),
-            }
-        )
-        .groupby("day")[["recovered", "lost"]]
-        .sum()
-    )
-    rng = np.random.default_rng(0)
-    days = by_day.index.to_numpy()
-    ratios = []
-    for _ in range(1000):
-        sample = by_day.loc[rng.choice(days, size=len(days), replace=True)]
-        lost = sample["lost"].sum()
-        ratios.append(sample["recovered"].sum() / lost if lost else 0.0)
-    ram_ci = [float(bound) for bound in np.percentile(ratios, [2.5, 97.5])]
-    return scored, ram_stats, audit, ram_ci
+    ram_stats["ram_pct_discounted_50"] = ram.ram_table(
+        recommendations, transfer_efficiency=0.5
+    )["ram_pct_of_lost"]
+    return scored, ram_stats, audit, ram.recovery_interval(recommendations)
 
 
 def smoke_event(panel: pd.DataFrame) -> dict:
@@ -438,7 +435,8 @@ def label_sensitivity(active_hours: pd.DataFrame) -> None:
         rows.append(
             {
                 "ratio": ratio,
-                "base_rate": float(labels.mean()),
+                "base_rate": scores["base_rate"],
+                "overall_base_rate": float(labels.mean()),
                 **{metric: scores[metric] for metric in ("auroc", "brier", "ece")},
             }
         )
@@ -454,7 +452,11 @@ def policy_sensitivity(test: pd.DataFrame, probabilities: np.ndarray) -> list:
         rows.append(
             {
                 "shift_window_h": window,
-                "ram_pct_of_lost": round(stats["ram_pct_of_lost"], 3),
+                "ram_pct_of_lost": (
+                    round(stats["ram_pct_of_lost"], 3)
+                    if stats["ram_pct_of_lost"] is not None
+                    else None
+                ),
                 "share_shifted": round(stats["share_shifted"], 3),
                 "all_safe": safety.audit(recommendations)["all_safe"],
             }
@@ -509,7 +511,9 @@ def floor_sensitivity(panel: pd.DataFrame) -> list:
                 "floor": floor,
                 "active_hours": len(active_hours),
                 "base_rate": round(scores["base_rate"], 3),
-                "auroc": round(scores["auroc"], 3),
+                "auroc": round(scores["auroc"], 3)
+                if scores["auroc"] is not None
+                else None,
                 "ece": round(scores["ece"], 3),
             }
         )
@@ -545,7 +549,7 @@ def main() -> None:
     step("figures")
     figures(test, panel, active_hours, predictions, comparison)
     step("recovered active minutes + safety audit")
-    test_scored, ram_stats, audit, ram_ci = recovered_active_minutes(
+    test_scored, ram_stats, audit, ram_uncertainty = recovered_active_minutes(
         test, predictions["unw"]
     )
     step("smoke event")
@@ -573,7 +577,8 @@ def main() -> None:
         "interpretation": {
             "holdout": "2022–2023 fit evaluated on 2024; distinct from all-data served coefficients",
             "calibration": "unweighted probabilities still overestimate 2024 suppression prevalence",
-            "policy": "ride-weighted predicted-risk scenario; full transfer assumed, not measured causal recovery",
+            "policy": "net risk-weighted scenario including cancellation losses; full shift transfer and no target capacity constraint, not measured causal recovery",
+            "uncertainty": "day bootstrap conditional on saved labels, fitted models and policy; does not include model fitting or live forecast uncertainty",
             "aqi": "daily-peak and hourly associations use different exposures; residual confounding and intraday measurement error remain",
             "rider_burden": "aggregate rider-type hour rates, not individual or neighborhood equity",
         },
@@ -583,10 +588,19 @@ def main() -> None:
         "test_rows": len(test),
         "test_base_rate": float(test["suppressed"].mean()),
         "model_comparison": comparison.to_dict(orient="records"),
-        "served_ci": confidence_intervals,
-        "ram": {key: value for key, value in ram_stats.items() if key != "per_hour"},
-        "ram_pct_ci": ram_ci,
-        "ram_pct_discounted_50": 0.5 * ram_stats["ram_pct_of_lost"],
+        "served_ci": {
+            metric: [interval["ci_low"], interval["ci_high"]]
+            for metric, interval in confidence_intervals.items()
+        },
+        "served_ci_diagnostics": confidence_intervals,
+        "ram": {
+            key: value
+            for key, value in ram_stats.items()
+            if key not in ("per_hour", "ram_pct_discounted_50")
+        },
+        "ram_pct_ci": [ram_uncertainty["ci_low"], ram_uncertainty["ci_high"]],
+        "ram_uncertainty": ram_uncertainty,
+        "ram_pct_discounted_50": ram_stats["ram_pct_discounted_50"],
         "safety": audit,
         "smoke_event": smoke_context,
         "aqi_identification": aqi,

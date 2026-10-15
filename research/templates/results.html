@@ -110,12 +110,12 @@
 
     <section aria-labelledby="scenario-title">
       <h2 id="scenario-title">Time-shift scenario</h2>
-      <p>A shift of up to three hours produced a predicted recovery of <strong>$recovery</strong> of modeled lost rides (95% interval $recovery_low–$recovery_high). This assumes full transfer to the chosen hours. At an assumed 50% transfer efficiency, recovery is <strong>$discounted_recovery</strong>.</p>
+      <p>The ±3-hour scenario has a net risk-weighted gain of <strong>$recovery</strong> relative to modeled lost rides ($recovery_interval). It includes losses from cancellations and shifts, with full transfer assumed for shifted demand. At 50% shift transfer, with cancellation losses unchanged, the net gain is <strong>$discounted_recovery</strong>.</p>
       <figure>
         <a href="figures/ram_by_month.png">
-          <img src="figures/ram_by_month.png" alt="Ride-weighted predicted-risk reduction by month under the time-shift scenario" loading="lazy">
+          <img src="figures/ram_by_month.png" alt="Net risk-weighted ride change by month, including cancellation and shift losses" loading="lazy">
         </a>
-        <figcaption>Simulated recovery. Candidate target hours must have heat index below 103°F and AQI below 150.</figcaption>
+        <figcaption>Scenario weights use expected rides and low-demand probabilities. Targets are observed active hours with heat index below 103°F and AQI below 150; target capacity is unconstrained.</figcaption>
       </figure>
     </section>
 

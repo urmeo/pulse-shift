@@ -66,7 +66,11 @@ def reliability_plot(labels, balanced, unweighted) -> None:
 def roc_plot(curves: dict) -> None:
     fig, ax = plt.subplots(figsize=(11, 6))
     ax.plot([0, 1], [0, 1], "--", color="#94a3b8", lw=1, label="Chance (AUROC 0.500)")
+    available = False
     for label, (labels, probabilities, auroc) in curves.items():
+        if auroc is None or not np.isfinite(auroc) or len(np.unique(labels)) < 2:
+            continue
+        available = True
         false_positive_rate, true_positive_rate, _ = roc_curve(labels, probabilities)
         ax.plot(
             false_positive_rate,
@@ -74,6 +78,8 @@ def roc_plot(curves: dict) -> None:
             color=MODEL_COLORS.get(label),
             label=f"{label} (AUROC {auroc:.3f})",
         )
+    if not available:
+        ax.text(0.05, 0.9, "ROC unavailable: both outcome classes are required.")
     ax.set(xlim=(0, 1), ylim=(0, 1))
     ax.xaxis.set_major_formatter(PercentFormatter(1))
     ax.yaxis.set_major_formatter(PercentFormatter(1))
@@ -88,7 +94,11 @@ def roc_plot(curves: dict) -> None:
 def precision_recall_plot(curves: dict) -> None:
     """Plot held-out precision and recall; AP uses sklearn's average precision."""
     fig, ax = plt.subplots(figsize=(11, 6))
+    available = False
     for label, (labels, probabilities, average_precision) in curves.items():
+        if average_precision is None or not np.isfinite(average_precision):
+            continue
+        available = True
         precision, recall, _ = precision_recall_curve(labels, probabilities)
         ax.step(
             recall,
@@ -96,6 +106,12 @@ def precision_recall_plot(curves: dict) -> None:
             where="post",
             color=MODEL_COLORS.get(label),
             label=f"{label} (AP {average_precision:.3f})",
+        )
+    if not available:
+        ax.text(
+            0.05,
+            0.9,
+            "Precision–recall unavailable: both outcome classes are required.",
         )
     labels = next(iter(curves.values()))[0]
     prevalence = np.asarray(labels).mean()
@@ -129,12 +145,14 @@ def model_comparison_plot(comparison: pd.DataFrame) -> None:
     ]:
         bars = ranking.barh(
             positions + offset,
-            comparison[column],
+            comparison[column].astype(float),
             height=0.32,
             color=color,
             label=label,
         )
         ranking.bar_label(bars, fmt="%.3f", padding=4, fontsize=9)
+    if comparison[["auroc", "auprc"]].isna().all().all():
+        ranking.text(0.05, 0.5, "Ranking unavailable", transform=ranking.transAxes)
     ranking.set_yticks(
         positions,
         comparison["model"].str.replace(
@@ -150,7 +168,7 @@ def model_comparison_plot(comparison: pd.DataFrame) -> None:
 
     bars = error.barh(positions, comparison["brier"], height=0.5, color="#7c3aed")
     error.bar_label(bars, fmt="%.3f", padding=4, fontsize=9)
-    error.set_xlim(0, comparison["brier"].max() * 1.25)
+    error.set_xlim(0, max(0.001, comparison["brier"].max() * 1.25))
     error.set_xlabel("Brier score")
     error.set_title("Probability error · lower is better")
     error.tick_params(axis="y", left=False)
@@ -183,11 +201,14 @@ def decision_plot(labels, probabilities) -> None:
 
 def exposure_response(panel: pd.DataFrame) -> None:
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
-    for ax, column, label, edges in [
-        (axes[0], "heat_index_f", "Heat index (F)", np.arange(40, 115, 5)),
-        (axes[1], "aqi", "Air Quality Index", np.arange(0, 320, 20)),
+    for ax, column, label, width in [
+        (axes[0], "heat_index_f", "Heat index (F)", 5),
+        (axes[1], "aqi", "Air Quality Index", 20),
     ]:
-        binned = pd.cut(panel[column], edges)
+        lower = np.floor(panel[column].min() / width) * width
+        upper = (np.floor(panel[column].max() / width) + 1) * width
+        edges = np.arange(lower, upper + width / 2, width)
+        binned = pd.cut(panel[column], edges, include_lowest=True)
         rate = panel.groupby(binned, observed=True)["suppressed"].mean()
         centers = [interval.mid for interval in rate.index]
         ax.plot(centers, rate.values, "o-", color="#36c")
@@ -259,7 +280,7 @@ def ram_by_month(recommendations: pd.DataFrame, recovered: pd.Series) -> None:
     monthly = hourly.groupby("month")["recovered"].sum()
     fig, ax = plt.subplots(figsize=(14, 6))
     ax.bar(monthly.index, monthly.values, color="#2a7")
-    ax.set_ylabel("Ride-weighted predicted-risk reduction")
-    ax.set_title("Model-based time-shift scenario by month")
+    ax.set_ylabel("Net risk-weighted ride change")
+    ax.set_title("Time-shift scenario: gains minus foregone rides")
     fig.autofmt_xdate()
     _save(fig, "ram_by_month.png")
