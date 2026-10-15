@@ -51,11 +51,11 @@ For the unweighted model, **95% intervals from resampling whole days** are **0.9
 
 ## Time-shift scenario
 
-A simulated shift of up to **three hours** produced a predicted recovery of **36.8% of modeled lost rides** (95% interval **33.0–40.9%**). This assumes full transfer to the chosen hours. At an assumed **50% transfer efficiency**, recovery is **18.4%**.
+A simulated shift of up to **three hours** gives a net risk-weighted gain of **33.9% of modeled lost rides** (95% interval **28.5–39.1%**). This includes cancellation and shift losses and assumes full transfer of shifted demand. At **50% shift transfer**, with cancellation losses unchanged, the net gain is **15.5%**.
 
-[![Ride-weighted predicted-risk reduction by month under the time-shift scenario](results/figures/ram_by_month.png)](results/figures/ram_by_month.png)
+[![Net risk-weighted ride change by month, including cancellation and shift losses](results/figures/ram_by_month.png)](results/figures/ram_by_month.png)
 
-The analysis compares same-day hours within ±3 hours using historical 2024 predictions, with heat index below 103°F and AQI below 150.
+The analysis compares observed active hours on the same day within ±3 hours using historical 2024 predictions, with heat index below 103°F and AQI below 150. It places no capacity limit on target hours. These are model-based scenario weights, not observed ride recovery.
 
 | Simulated shifts | Cancellations | Study-threshold violations |
 | ---: | ---: | ---: |

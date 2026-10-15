@@ -61,9 +61,9 @@ The [Seoul predictions](tables/seoul_predictions.csv) and [provenance metadata](
 
 ## Simulated time shifts
 
-The simulated policy allowed shifts of up to three hours. It made **1,126 shifts and 9 cancellations**, with **0 violations of study thresholds**. Predicted recovery was **36.8% of modeled lost rides** (95% CI **33.0–40.9%**) under full transfer of demand to the chosen hours. Assuming 50% transfer efficiency reduces this to **18.4%**.
+The policy allows shifts of up to three hours among observed active test hours. It made **1,126 shifts and 9 cancellations**, with **0 violations of study thresholds**. The net risk-weighted gain is **33.9% of modeled lost rides** (95% interval **28.5–39.1%**), including cancellation and shift losses. At 50% shift transfer, cancellation losses stay fixed and the net is **15.5%**.
 
-These are scenario estimates, not observed ride recovery. The [monthly figure](figures/ram_by_month.png), [policy predictions](tables/policy_predictions.csv), [policy sensitivity](tables/sensitivity_policy.csv) and [summary metadata](tables/summary.json) provide the supporting outputs.
+These are scenario weights, not observed ride recovery or predicted ride counts. The interval resamples paired daily gains and losses with model, baseline and policy fixed; days are assumed independent. Target capacity is unconstrained. The [monthly figure](figures/ram_by_month.png), [policy predictions](tables/policy_predictions.csv), [policy sensitivity](tables/sensitivity_policy.csv) and [summary metadata](tables/summary.json) record gross gains, foregone rides and bootstrap support.
 
 ## Limitations and operating conditions
 

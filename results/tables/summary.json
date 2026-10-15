@@ -1,33 +1,33 @@
 {
   "provenance": {
-    "generated_at_utc": "2026-10-14T20:19:19.799725+00:00",
-    "source_commit": "8b26d1b8220938494e93b803d2114cfea04b74b3",
+    "generated_at_utc": "2026-10-15T09:30:03.569293+00:00",
+    "source_commit": "ea3150151d05c325cbbaee85c190329a3ce16f27",
     "source_dirty": false,
-    "source_sha256": "3c303717259ff88d55e9b87682778930da29420377180d76db440f90ee40592f",
+    "source_sha256": "826e7be644c3eaf167f3156e0bd078ef6a02d9c5efa272c464ddddab51d7c5f4",
     "source_files_sha256": {
       "research/pulseshift/__init__.py": "6a09c7098968c3e1d4de8fbd2e7b7fd0ad791ca4f8b811be7128baee3cb50da2",
       "research/pulseshift/airquality.py": "b7faae09c50dfb57439b6eee49f476ee74467f11ddd37ccc9682e3cb3a455236",
       "research/pulseshift/calibration.py": "9047251d6efd611f0bf70e059438a679cf22269701a85fed92d513293548f7e6",
       "research/pulseshift/config.py": "6688e9d29ecda1f3ae4e5579d7403efbf827b480c12ef8309ca7c5cf0d86bb35",
       "research/pulseshift/decision.py": "66f848516d53f4597917fe5a0fcc8277ca9df68cc8ccfc7b80174b21fc94048a",
-      "research/pulseshift/equity.py": "ffdbbf9ac5b320c62e623dfafde8423d8771d311fda1f1201bd8653722f4f7a9",
-      "research/pulseshift/evaluation.py": "5e773834f3933da4d9dd0046679214d1c809cba0481b021046f73bb2018c8f6e",
+      "research/pulseshift/equity.py": "13c5fd783e2e6fbf9876e17de9dd31d240d7bfb5e57075513cd70449b314a19e",
+      "research/pulseshift/evaluation.py": "a7614cdf9140e7993a5d518ff364573049ed4b2fe23837c7e5a964be96af948e",
       "research/pulseshift/features.py": "79f1e6d78d3e459abb7a2532b6f40cd6fec0ac0898762a904eb6f18a03d8e96e",
       "research/pulseshift/ingest.py": "51a31994bd701b1a0cc1ba80479e2848be3f04619348a5bb22a906461bb3ef59",
       "research/pulseshift/models.py": "d405bf546dffb9e0f2044d5be636bbb343c9db53162c221ef00090213a14be41",
       "research/pulseshift/panel.py": "383343c1e1f8106cb101bf0a68fac55300faf7ebe64323b1d5a325f993aace4d",
-      "research/pulseshift/plots.py": "ca9eb8ba2bcf57578f2ce8b30048d7f9d6c8901f5981f88826e0f11458b9d22a",
+      "research/pulseshift/plots.py": "d946bbd81addfa590ca769081459e5eb3ddfa1c3838ee8802d389334a16fac6b",
       "research/pulseshift/provenance.py": "3d306c4a74dda1d2e51d81abfa1399dec1857b1803cd65d63e612d5a2b8a1cec",
-      "research/pulseshift/ram.py": "f6b3d0f0ed18960c58fc85b0d44a6c12eaba25f971edf43fc3561b9f27aa0b11",
-      "research/pulseshift/report.py": "2e7bf2ed720ab41a81c7ab6ca911cbf7f8343ed1e89d9c4770b1acdcb39849ee",
+      "research/pulseshift/ram.py": "55ee765148e0f493f03ef594773b756491a0bc68859d4725db9a9f07b93f6501",
+      "research/pulseshift/report.py": "5160b1f33523ddbe640c3cc12bedb8ede192f419caef8f11a3d021967d2a6197",
       "research/pulseshift/safety.py": "60bb49ce9a7fdc5b4a4dce50d6fdb6b7c29e64305408d3286f264cb897d6e442",
       "research/pulseshift/tables.py": "a4f5027ee1383d4edd565365ca3599face4b400379c36afb78979b84d4431936",
       "research/scripts/build_data.py": "3cf7f47b7de6fc4da3e4cbe97f2da262dc7890510536e4a63db85ee5d1fa72ef",
-      "research/scripts/run_analysis.py": "5302d5300925585bb4bfce30b969c870cc5cca581be5ac0849ea88d5703d7a84",
+      "research/scripts/run_analysis.py": "ddcaccf80e77e1b7b1173905d70ed8c8c6f4396d68a7d8551ea0315680a78a01",
       "research/scripts/train_model.py": "660e22c76b555a6561c210d1a62741f8af6f0a6afeac5bdf45e4475428661d9a",
-      "research/scripts/validate_seoul.py": "a2b313411cb87ffe328c452be10e26da40d30079b458fe8efd1035bb84f789bd",
+      "research/scripts/validate_seoul.py": "c963decc04843edf799eb493d76c3505e47353ebe2676a5fd18cc253638fc890",
       "research/scripts/verify.py": "724cf2e63752ae4b353a261d0e6461f63c24a66af557bd52fa5d572df38af255",
-      "research/templates/results.html": "c5a993ac26206f2ec074554506566fbd9ec33fc8edec0e2c45fe4300a7df7cc1"
+      "research/templates/results.html": "35a62dad2f8a4858b34f7df8c8f61f5c152280106cb2d91211bd24aaacd45bfd"
     },
     "panel_sha256": "beec804a0839f73cd905f2147accf2bb9a256531dcce6986378368faccdc972e",
     "python": "3.12.13",
@@ -62,7 +62,8 @@
   "interpretation": {
     "holdout": "2022\u20132023 fit evaluated on 2024; distinct from all-data served coefficients",
     "calibration": "unweighted probabilities still overestimate 2024 suppression prevalence",
-    "policy": "ride-weighted predicted-risk scenario; full transfer assumed, not measured causal recovery",
+    "policy": "net risk-weighted scenario including cancellation losses; full shift transfer and no target capacity constraint, not measured causal recovery",
+    "uncertainty": "day bootstrap conditional on saved labels, fitted models and policy; does not include model fitting or live forecast uncertainty",
     "aqi": "daily-peak and hourly associations use different exposures; residual confounding and intraday measurement error remain",
     "rider_burden": "aggregate rider-type hour rates, not individual or neighborhood equity"
   },
@@ -79,10 +80,11 @@
       "auroc": 0.6922347383451167,
       "auprc": 0.04607740480331623,
       "brier": 0.02748281499542818,
-      "log_loss": 0.13642529215415966,
+      "log_loss": 0.1364252407158112,
       "ece": 0.05302749611497718,
-      "cal_slope": 1.0576038015431926,
-      "cal_intercept": -1.1004307922230756
+      "cal_slope": 1.0624912227435632,
+      "cal_intercept": -1.0877797960744182,
+      "calibration_status": "available"
     },
     {
       "model": "Logistic (unweighted)",
@@ -91,10 +93,11 @@
       "auroc": 0.9364768956275782,
       "auprc": 0.4877714979482489,
       "brier": 0.02125156236729316,
-      "log_loss": 0.09508685311281159,
+      "log_loss": 0.09516946597090295,
       "ece": 0.04422557661282291,
-      "cal_slope": 1.0656952926079546,
-      "cal_intercept": -1.447533629138635
+      "cal_slope": 1.064406308125838,
+      "cal_intercept": -1.4443230957881958,
+      "calibration_status": "available"
     },
     {
       "model": "Logistic (balanced)",
@@ -103,10 +106,11 @@
       "auroc": 0.939730104602562,
       "auprc": 0.4478615947523785,
       "brier": 0.12839007678924635,
-      "log_loss": 0.4306176133148386,
+      "log_loss": 0.43573086142696976,
       "ece": 0.2532444276625464,
-      "cal_slope": 0.6936643131491539,
-      "cal_intercept": -3.8327558431697413
+      "cal_slope": 0.6446969895283506,
+      "cal_intercept": -3.774568304136397,
+      "calibration_status": "available"
     },
     {
       "model": "Logistic (balanced) + calibration",
@@ -115,10 +119,11 @@
       "auroc": 0.9396218395896077,
       "auprc": 0.46595889590014744,
       "brier": 0.028815377333775784,
-      "log_loss": 0.11375091325488705,
+      "log_loss": 0.11375084609249364,
       "ece": 0.0642372913066887,
-      "cal_slope": 1.2180123009737993,
-      "cal_intercept": -1.7825881612983485
+      "cal_slope": 1.218465306849142,
+      "cal_intercept": -1.7815054167504734,
+      "calibration_status": "available"
     },
     {
       "model": "Gradient boosting",
@@ -129,8 +134,9 @@
       "brier": 0.024907140601903896,
       "log_loss": 0.0964016217102022,
       "ece": 0.0460836905918486,
-      "cal_slope": 1.0167559260942243,
-      "cal_intercept": -1.70935728570969
+      "cal_slope": 1.017165451390019,
+      "cal_intercept": -1.7086226013339627,
+      "calibration_status": "available"
     }
   ],
   "served_ci": {
@@ -151,21 +157,75 @@
       0.05174732338434381
     ]
   },
+  "served_ci_diagnostics": {
+    "auroc": {
+      "ci_low": 0.8996819586597287,
+      "ci_high": 0.9671327948166588,
+      "requested_draws": 1000,
+      "valid_draws": 1000,
+      "unit_count": 366,
+      "status": "available",
+      "conditioning": "fixed predictions and saved labels"
+    },
+    "auprc": {
+      "ci_low": 0.31932401502394087,
+      "ci_high": 0.6375503882347442,
+      "requested_draws": 1000,
+      "valid_draws": 1000,
+      "unit_count": 366,
+      "status": "available",
+      "conditioning": "fixed predictions and saved labels"
+    },
+    "brier": {
+      "ci_low": 0.016559261680678408,
+      "ci_high": 0.026073995593715923,
+      "requested_draws": 1000,
+      "valid_draws": 1000,
+      "unit_count": 366,
+      "status": "available",
+      "conditioning": "fixed predictions and saved labels"
+    },
+    "ece": {
+      "ci_low": 0.03661557145494353,
+      "ci_high": 0.05174732338434381,
+      "requested_draws": 1000,
+      "valid_draws": 1000,
+      "unit_count": 366,
+      "status": "available",
+      "conditioning": "fixed predictions and saved labels"
+    }
+  },
   "ram": {
-    "recovered_rides": 92601.8566553879,
-    "recovered_minutes": 1203824.1365200428,
+    "recovered_rides": 85364.05295466588,
+    "recovered_minutes": 1109732.6884106565,
+    "gross_recovered_rides": 92601.85665538792,
+    "foregone_rides": 7237.803700722028,
+    "cancellation_loss": 7219.493397396858,
+    "shift_loss": 18.310303325168373,
+    "transfer_efficiency": 1.0,
     "lost_rides_no_adapt": 251613.1038192805,
-    "ram_pct_of_lost": 0.3680327266337392,
+    "ram_pct_of_lost": 0.33926711947394467,
     "share_shifted": 0.1372501218917601,
     "share_cancel": 0.0010970258410531448,
     "n_shifts": 1126,
     "distinct_target_slots": 757
   },
   "ram_pct_ci": [
-    0.3301098599357227,
-    0.40884160271263104
+    0.28536015188655234,
+    0.3912191882478784
   ],
-  "ram_pct_discounted_50": 0.1840163633168696,
+  "ram_uncertainty": {
+    "ci_low": 0.28536015188655234,
+    "ci_high": 0.3912191882478784,
+    "n_days": 366,
+    "transfer_efficiency": 1.0,
+    "bootstrap_method": "paired day-cluster percentile",
+    "bootstrap_conditioning": "fixed model, expected-ride baseline and policy; independent days; draws with positive modeled-loss total",
+    "bootstrap_requested": 1000,
+    "bootstrap_valid": 1000,
+    "uncertainty_status": "available"
+  },
+  "ram_pct_discounted_50": 0.15528714198723897,
   "safety": {
     "n_shifts": 1126,
     "n_cancel": 9,
@@ -334,19 +394,19 @@
     "policy": [
       {
         "shift_window_h": 2,
-        "ram_pct_of_lost": 0.303,
+        "ram_pct_of_lost": 0.224,
         "share_shifted": 0.113,
         "all_safe": true
       },
       {
         "shift_window_h": 3,
-        "ram_pct_of_lost": 0.368,
+        "ram_pct_of_lost": 0.339,
         "share_shifted": 0.137,
         "all_safe": true
       },
       {
         "shift_window_h": 4,
-        "ram_pct_of_lost": 0.417,
+        "ram_pct_of_lost": 0.411,
         "share_shifted": 0.155,
         "all_safe": true
       }

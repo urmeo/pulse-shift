@@ -60,6 +60,8 @@ Five variants share this historical test: climatology, unweighted logistic, bala
 
 [run_analysis.py](../research/scripts/run_analysis.py) saves test probabilities, model scores, ROC and precision–recall curves, calibration and decision curves. Confidence intervals for the **unweighted model** resample whole test days.
 
+These intervals condition on the fitted model and saved labels. They preserve dependence within each day and assume independent days; they do not include model-fitting uncertainty or dependence across consecutive days. At least two sampling units and 80% usable draws are required. [Interval diagnostics](../results/tables/served_ci.csv) record draw counts and unavailable estimates. Calibration slopes are unavailable for constant predictions, separated outcomes or failed convergence. Log loss uses float64 endpoint protection; calibration fits standardized logits and then restores the original slope and intercept units.
+
 | Check | What varies or is measured |
 | --- | --- |
 | Feature comparison | Temporal features, then weather, then AQI and smoke/haze |
@@ -77,14 +79,16 @@ The [model code](../research/pulseshift/models.py), [calibration code](../resear
 | --- | --- | --- |
 | Model | Unweighted model fit on 2022–2023 | Separate unweighted refit on all active 2022–2024 hours |
 | Conditions | Recorded 2024 conditions | Open-Meteo weather and CAMS AQI forecasts |
-| Candidate hours | Same calendar day, within ±3 hours for the main scenario | Next 24 hours, from 06:00 to 21:00 DC time |
+| Candidate hours | Observed active test hours on the same calendar day, within ±3 hours | Next 24 hours, from 06:00 to 21:00 DC time |
 | Choice | Keep, shift or cancel under the policy rules below | Choose the complete daytime forecast hour with the lowest estimated chance of low demand |
 | Exclusions | Target heat index ≥103°F or AQI ≥150 | Missing inputs, heat index ≥103°F or AQI ≥150 |
-| Interpretation | Predicted recovery assumes demand transfers to the chosen hour | Forecast estimates have not been prospectively evaluated |
+| Interpretation | Net risk-weighted change assumes transfer to the chosen hour and unconstrained target capacity | Forecast estimates have not been prospectively evaluated |
 
 If the original hour meets the study heat and AQI limits, the historical policy shifts only when predicted risk improves by at least 0.05. If the original hour exceeds a limit, it shifts to a feasible hour without that improvement requirement. With no feasible hour, it cancels.
 
-The historical policy computes ride-weighted predicted recovery and resamples days for its interval. Full transfer produces the reported **36.8%** scenario; an assumed 50% transfer gives **18.4%**. These are simulated outcomes. The [policy implementation](../research/pulseshift/ram.py) and [threshold audit](../research/pulseshift/safety.py) record the rules. Neither path establishes personal exercise safety.
+The scenario weights each hour's risk change by its expected rides. It sums gains and losses, including all foregone baseline demand on cancellation. Full shift transfer gives a net **33.9%** relative to risk-weighted baseline loss (95% interval **28.5–39.1%**). At 50% shift transfer, signed shift changes are halved while cancellation losses stay fixed; the net is **15.5%**.
+
+The interval resamples paired daily net changes and baseline losses with the model, expected-ride baseline and policy fixed. Undefined denominator draws are excluded; fewer than two days or 80% usable draws leaves the interval unavailable. Multiple source hours can share a target, with no capacity constraint. Ride probabilities are scenario weights, not predicted ride counts; the optional minutes conversion assumes 13 minutes per ride unit. The [policy implementation](../research/pulseshift/ram.py) and [threshold audit](../research/pulseshift/safety.py) record the rules. Neither path establishes personal exercise safety.
 
 ## 5. Export and run the browser model
 

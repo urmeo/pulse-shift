@@ -1,33 +1,33 @@
 {
-  "generated_at_utc": "2026-10-11T18:58:39.042562+00:00",
-  "source_commit": "c48166b3b1c22a3fc21058373792bc7244ab993c",
+  "generated_at_utc": "2026-10-15T09:30:06.572598+00:00",
+  "source_commit": "ea3150151d05c325cbbaee85c190329a3ce16f27",
   "source_dirty": false,
-  "source_sha256": "df34cf58d7dd266bd81da1798dfaa1a83f344003a33de642d0c9527d9df05d2f",
+  "source_sha256": "826e7be644c3eaf167f3156e0bd078ef6a02d9c5efa272c464ddddab51d7c5f4",
   "source_files_sha256": {
     "research/pulseshift/__init__.py": "6a09c7098968c3e1d4de8fbd2e7b7fd0ad791ca4f8b811be7128baee3cb50da2",
-    "research/pulseshift/airquality.py": "0ad0faaed706da0e484fdb6caf08c76ca789a558f3f4113b139ab2f019f34045",
+    "research/pulseshift/airquality.py": "b7faae09c50dfb57439b6eee49f476ee74467f11ddd37ccc9682e3cb3a455236",
     "research/pulseshift/calibration.py": "9047251d6efd611f0bf70e059438a679cf22269701a85fed92d513293548f7e6",
     "research/pulseshift/config.py": "6688e9d29ecda1f3ae4e5579d7403efbf827b480c12ef8309ca7c5cf0d86bb35",
     "research/pulseshift/decision.py": "66f848516d53f4597917fe5a0fcc8277ca9df68cc8ccfc7b80174b21fc94048a",
-    "research/pulseshift/equity.py": "ffdbbf9ac5b320c62e623dfafde8423d8771d311fda1f1201bd8653722f4f7a9",
-    "research/pulseshift/evaluation.py": "5e773834f3933da4d9dd0046679214d1c809cba0481b021046f73bb2018c8f6e",
+    "research/pulseshift/equity.py": "13c5fd783e2e6fbf9876e17de9dd31d240d7bfb5e57075513cd70449b314a19e",
+    "research/pulseshift/evaluation.py": "a7614cdf9140e7993a5d518ff364573049ed4b2fe23837c7e5a964be96af948e",
     "research/pulseshift/features.py": "79f1e6d78d3e459abb7a2532b6f40cd6fec0ac0898762a904eb6f18a03d8e96e",
-    "research/pulseshift/ingest.py": "8b13b1709c3e04ad10249c9503a06d028ac6b8abe8c26ceee6fc4e8632b01486",
-    "research/pulseshift/models.py": "64fb48937d1789fad2f3afcd268fcaac3783c7c4ac22a54ed0979763482a3719",
-    "research/pulseshift/panel.py": "d4a20b6d3f140ae23f6dcd672ca7c2045f7cc3b45d3d99fdfd37089543515831",
-    "research/pulseshift/plots.py": "e765b4f93151ced46fbdf4f2ebc905114e47c67343a307bcd2de74ec1091eea2",
-    "research/pulseshift/provenance.py": "b75e0ca245357253e3be48de804cd10db22c7d52ec6a0c6de000de003bee7641",
-    "research/pulseshift/ram.py": "f6b3d0f0ed18960c58fc85b0d44a6c12eaba25f971edf43fc3561b9f27aa0b11",
-    "research/pulseshift/report.py": "0bb25e2dc5d50a7114d6bf43700083f1971c30e95adca58f94cdfbf2cdd50406",
+    "research/pulseshift/ingest.py": "51a31994bd701b1a0cc1ba80479e2848be3f04619348a5bb22a906461bb3ef59",
+    "research/pulseshift/models.py": "d405bf546dffb9e0f2044d5be636bbb343c9db53162c221ef00090213a14be41",
+    "research/pulseshift/panel.py": "383343c1e1f8106cb101bf0a68fac55300faf7ebe64323b1d5a325f993aace4d",
+    "research/pulseshift/plots.py": "d946bbd81addfa590ca769081459e5eb3ddfa1c3838ee8802d389334a16fac6b",
+    "research/pulseshift/provenance.py": "3d306c4a74dda1d2e51d81abfa1399dec1857b1803cd65d63e612d5a2b8a1cec",
+    "research/pulseshift/ram.py": "55ee765148e0f493f03ef594773b756491a0bc68859d4725db9a9f07b93f6501",
+    "research/pulseshift/report.py": "5160b1f33523ddbe640c3cc12bedb8ede192f419caef8f11a3d021967d2a6197",
     "research/pulseshift/safety.py": "60bb49ce9a7fdc5b4a4dce50d6fdb6b7c29e64305408d3286f264cb897d6e442",
     "research/pulseshift/tables.py": "a4f5027ee1383d4edd565365ca3599face4b400379c36afb78979b84d4431936",
     "research/scripts/build_data.py": "3cf7f47b7de6fc4da3e4cbe97f2da262dc7890510536e4a63db85ee5d1fa72ef",
-    "research/scripts/run_analysis.py": "8616f83850d1aacb037fdd62a2c87b000ed1b92868bd858c0d38fe30ba9d3e59",
+    "research/scripts/run_analysis.py": "ddcaccf80e77e1b7b1173905d70ed8c8c6f4396d68a7d8551ea0315680a78a01",
     "research/scripts/train_model.py": "660e22c76b555a6561c210d1a62741f8af6f0a6afeac5bdf45e4475428661d9a",
-    "research/scripts/validate_seoul.py": "a2b313411cb87ffe328c452be10e26da40d30079b458fe8efd1035bb84f789bd",
-    "research/templates/results.html": "a00483f4853c1d7037b4a300a8907304e1b192b9c92371b4999992aecab9e060"
+    "research/scripts/validate_seoul.py": "c963decc04843edf799eb493d76c3505e47353ebe2676a5fd18cc253638fc890",
+    "research/scripts/verify.py": "724cf2e63752ae4b353a261d0e6461f63c24a66af557bd52fa5d572df38af255",
+    "research/templates/results.html": "35a62dad2f8a4858b34f7df8c8f61f5c152280106cb2d91211bd24aaacd45bfd"
   },
-  "panel_sha256": "69eed06d11c82b591e53380346a1019703889e47cb3c72d13b8939a7589a4769",
   "python": "3.12.13",
   "platform": "macOS-27.0.1-arm64-arm-64bit",
   "packages": {
@@ -40,21 +40,7 @@
   "label": {
     "ratio": 0.5,
     "expected_floor": 20,
-    "climatology": "training-year season \u00d7 daytype \u00d7 hour median with training-year volume level",
-    "train_years": [
-      2022,
-      2023
-    ],
-    "test_year": 2024
-  },
-  "air_quality": {
-    "source": "CAMS Global Atmospheric Composition Forecasts via Open-Meteo",
-    "native_resolution": "approximately 45 km / 3-hourly; hourly API values",
-    "fallback": "EPA daily AQI where CAMS hourly AQI is missing"
-  },
-  "safety_rails": {
-    "heat_unsafe_f": 103.0,
-    "aqi_unsafe": 150
+    "climatology": "training-date season \u00d7 daytype \u00d7 hour median"
   },
   "seoul": {
     "source_url": "https://archive.ics.uci.edu/static/public/560/seoul+bike+sharing+demand.zip",
@@ -73,6 +59,13 @@
       "hour_cos",
       "is_weekend"
     ],
+    "coverage": {
+      "source_rows": 8760,
+      "functioning_hours": 8465,
+      "eligible_hours": 8465,
+      "excluded_functioning_hours": 0,
+      "zero_recorded_trip_hours": 0
+    },
     "train_dates": [
       "2017-12-01",
       "2017-12-02",

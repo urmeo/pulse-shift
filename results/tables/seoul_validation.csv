@@ -1,2 +1,2 @@
-city,protocol,n_train,n_test,train_days,test_days,base_rate,auroc,auprc,brier,ece,cal_slope,cal_intercept
-Seoul,city-specific refit; latest 25% of days within each season,6305,2160,263,90,0.12546296296296297,0.8728470715093598,0.6936928646253593,0.06353794122287443,0.02975250324495224,0.9041951477980602,0.25949970685154033
+city,protocol,n_train,n_test,train_days,test_days,base_rate,auroc,auprc,brier,ece,cal_slope,cal_intercept,calibration_status
+Seoul,city-specific refit; latest 25% of days within each season,6305,2160,263,90,0.12546296296296297,0.8728470715093598,0.6936928646253593,0.06353794122287443,0.02975250324495224,0.8411969559318003,0.12822307382173026,available

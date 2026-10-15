@@ -32,5 +32,5 @@ Probabilities overestimate low demand.
 Compare the recorded model scores.
 
 00:33.200 --> 00:36.700
-Simulated recovery: 36.8% with full transfer;
-18.4% assuming 50% transfer efficiency.
+Net scenario gain: 33.9% with full shift transfer;
+15.5% at half shift transfer; cancellations unchanged.
