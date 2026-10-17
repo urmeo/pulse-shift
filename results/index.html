@@ -33,7 +33,7 @@
       <a href="figures/pipeline.svg">
         <picture>
           <source media="(max-width: 640px)" srcset="figures/pipeline-mobile.svg" width="360" height="2704">
-          <img class="pipeline" src="figures/pipeline.svg" width="1280" height="1440" alt="PulseShift signal flow: DC records become a verified hourly panel, low-demand labels and 12 features. Separate historical and browser fits lead to evaluation and fixed-model scoring. Only forecast scores enter hour selection. Candidate-hour limits, DC AQI associations and an independent Seoul refit complete the pipeline.">
+          <img class="pipeline" src="figures/pipeline.svg" width="1280" height="1440" alt="DC rides, weather and AQI form hourly low-demand labels and 12 features. Separate fits lead to 2024 evaluation and fixed browser estimates; only forecasts enter hour selection. AQI associations and an independent Seoul refit support the research.">
         </picture>
       </a>
       <details>
@@ -61,12 +61,11 @@
           </li>
         </ul>
       </details>
-      <p class="note">The historical unweighted model overestimates probabilities. Live forecast accuracy and actual ride recovery remain unmeasured. <a href="https://www.figma.com/design/yhY22TCHa8m8mhBi1Z4RCw?node-id=2-2">Figma source</a> · <a href="https://github.com/urmeo/pulse-shift/blob/main/docs/pipeline.md">Pipeline methods</a>.</p>
+      <p class="note">Live forecast accuracy remains unmeasured. <a href="https://www.figma.com/design/yhY22TCHa8m8mhBi1Z4RCw?node-id=2-2">Figma source</a> · <a href="https://github.com/urmeo/pulse-shift/blob/main/docs/pipeline.md">Pipeline methods</a>.</p>
     </section>
 
     <section aria-labelledby="evaluation-title">
       <h2 id="evaluation-title">Model evaluation</h2>
-      <p>These charts use the historical 2024 test set.</p>
       <figure>
         <a href="figures/model_comparison.png">
           <img src="figures/model_comparison.png" alt="Five models compared by AUROC, average precision and Brier score on the 2024 test set" loading="lazy">
@@ -77,13 +76,11 @@
         <a href="figures/roc.png">
           <img src="figures/roc.png" alt="ROC curves for climatology, balanced logistic and unweighted logistic on the 2024 test set" loading="lazy">
         </a>
-        <figcaption>ROC curves compare true-positive and false-positive rates across thresholds.</figcaption>
       </figure>
       <figure>
         <a href="figures/precision_recall.png">
           <img src="figures/precision_recall.png" alt="Precision–recall curves for five models, with the observed event rate as a reference" loading="lazy">
         </a>
-        <figcaption>Precision–recall curves show how many flagged hours have low demand as recall increases.</figcaption>
       </figure>
       <figure>
         <a href="figures/reliability.png">
@@ -119,7 +116,7 @@
         <a href="figures/ram_by_month.png">
           <img src="figures/ram_by_month.png" alt="Net risk-weighted ride change by month, including cancellation and shift losses" loading="lazy">
         </a>
-        <figcaption>Scenario weights use expected rides and low-demand probabilities. Targets are observed active hours with heat index below 103°F and AQI below 150; target capacity is unconstrained.</figcaption>
+        <figcaption>Scenario weights use expected rides and low-demand probabilities. Targets are observed active hours with heat index below 103°F and AQI below 150; target capacity is unconstrained. Actual ride recovery was not measured.</figcaption>
       </figure>
     </section>
 
