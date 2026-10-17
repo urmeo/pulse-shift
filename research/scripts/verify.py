@@ -63,7 +63,6 @@ def main() -> int:
     python = [sys.executable, "-m"]
     with tempfile.TemporaryDirectory(prefix="pulseshift-checks-") as temporary:
         cache = Path(temporary)
-        environment["MPLCONFIGDIR"] = str(cache / "matplotlib")
         checks = [
             ("JavaScript tests", [node, "--test", "tests/app.test.cjs"]),
             (

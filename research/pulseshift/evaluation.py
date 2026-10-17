@@ -54,7 +54,8 @@ def calibration_fit(y_true, y_prob) -> tuple[float, float]:
     if len(np.unique(y_true)) != 2:
         raise CalibrationUnavailable("calibration fitting requires both label classes")
     logits = _logit(y_prob)
-    centered = logits - logits.mean()
+    logit_mean = logits.mean()
+    centered = logits - logit_mean
     if np.linalg.norm(centered) <= np.sqrt(np.finfo(float).eps) * max(
         np.linalg.norm(logits), np.sqrt(len(logits))
     ):
@@ -69,21 +70,22 @@ def calibration_fit(y_true, y_prob) -> tuple[float, float]:
         )
     scale = logits.std()
     standardized = centered / scale
+    predictors = standardized.reshape(-1, 1)
     model = LogisticRegression(C=np.inf, max_iter=2000, tol=1e-10)
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("error", ConvergenceWarning)
-            model.fit(standardized.reshape(-1, 1), y_true)
+            model.fit(predictors, y_true)
     except ConvergenceWarning as error:
         raise CalibrationUnavailable("calibration fit did not converge") from error
     if not np.isfinite(model.coef_).all() or not np.isfinite(model.intercept_).all():
         raise CalibrationUnavailable("calibration fit returned nonfinite coefficients")
-    fitted = model.predict_proba(standardized.reshape(-1, 1))[:, 1]
+    fitted = model.predict_proba(predictors)[:, 1]
     score = np.column_stack([np.ones(len(logits)), standardized]).T @ (y_true - fitted)
     if np.max(np.abs(score)) / len(logits) > np.sqrt(np.finfo(float).eps):
         raise CalibrationUnavailable("calibration score equations did not converge")
     slope = float(model.coef_[0][0] / scale)
-    intercept = float(model.intercept_[0] - slope * logits.mean())
+    intercept = float(model.intercept_[0] - slope * logit_mean)
     return slope, intercept
 
 

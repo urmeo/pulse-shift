@@ -220,7 +220,7 @@ def figures(
     plots.smoke_event(panel)
 
 
-def recovered_active_minutes(
+def time_shift_scenario(
     test: pd.DataFrame, probabilities: np.ndarray
 ) -> tuple[pd.DataFrame, dict, dict, dict]:
     """Estimate a time-shift scenario from predicted risk and bootstrap by day."""
@@ -315,13 +315,13 @@ def aqi_identification(active_hours: pd.DataFrame) -> dict:
         "bootstrap_valid",
         "uncertainty_status",
     ]
-    ladder = pd.DataFrame(
+    associations = pd.DataFrame(
         [
             {"identification": "between-day (controlled)", **between},
             {"identification": "within-day fixed effects", **within},
         ]
     )[columns]
-    write_table(ladder, "aqi_identification")
+    write_table(associations, "aqi_identification")
     write_table(pd.DataFrame([episodes]), "smoke_episodes")
 
     power = pd.DataFrame(
@@ -522,7 +522,6 @@ def floor_sensitivity(panel: pd.DataFrame) -> list:
 
 
 def main() -> None:
-    """Write model evaluations, scenario estimates, figures, and a JSON summary."""
     total = 18
     completed_steps = 0
 
@@ -548,13 +547,13 @@ def main() -> None:
     cost_rows = decision_and_cost(test, predictions["unw"])
     step("figures")
     figures(test, panel, active_hours, predictions, comparison)
-    step("recovered active minutes + safety audit")
-    test_scored, ram_stats, audit, ram_uncertainty = recovered_active_minutes(
+    step("time-shift scenario + threshold audit")
+    test_scored, ram_stats, audit, ram_uncertainty = time_shift_scenario(
         test, predictions["unw"]
     )
     step("smoke event")
     smoke_context = smoke_event(panel)
-    step("AQI identification ladder (day-clustered bootstrap)")
+    step("AQI associations (day bootstrap)")
     aqi = aqi_identification(active_hours)
     step("AQI coefficient (hourly vs daily)")
     aqi_coefficients = aqi_coefficient(active_hours, browser_model)

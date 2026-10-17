@@ -24,11 +24,12 @@ def audit(reco: pd.DataFrame, risk_col: str = "risk") -> dict:
         | (reco["target_aqi"] >= config.AQI_UNSAFE)
         | invalid_target
     )
+    unsafe_count = int(unsafe_target.sum())
     return {
         "n_shifts": len(shifts),
         "n_cancel": int((reco["action"] == "cancel").sum()),
-        "unsafe_recommendations": int(unsafe_target.sum()),
+        "unsafe_recommendations": unsafe_count,
         "invalid_recommendations": int(invalid_target.sum()),
         "mean_risk_reduction": float(risk_drop.mean()) if len(shifts) else 0.0,
-        "all_safe": bool(unsafe_target.sum() == 0),
+        "all_safe": unsafe_count == 0,
     }

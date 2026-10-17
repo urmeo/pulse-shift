@@ -30,10 +30,7 @@ def _download(url: str, dest: str | Path) -> Path:
             length = response.headers.get("Content-Length")
             expected_bytes = int(length) if length is not None else None
             received_bytes = 0
-            while True:
-                chunk = response.read(1 << 20)
-                if not chunk:
-                    break
+            while chunk := response.read(1 << 20):
                 output.write(chunk)
                 received_bytes += len(chunk)
             if expected_bytes is not None and received_bytes != expected_bytes:

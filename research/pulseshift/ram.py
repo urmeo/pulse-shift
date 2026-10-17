@@ -1,4 +1,4 @@
-"""Time-shift adaptation and Recovered Active Minutes (RAM)."""
+"""Time-shift policy and signed risk-weighted ride scenarios."""
 
 from __future__ import annotations
 
@@ -123,15 +123,16 @@ def _scenario_values(
             raise ValueError(
                 "scenario risk must contain finite probabilities in [0, 1]"
             )
-    if not reco["action"].isin(["keep", "shift", "cancel"]).all():
+    actions = reco["action"]
+    if not actions.isin(["keep", "shift", "cancel"]).all():
         raise ValueError("scenario actions must be keep, shift or cancel")
-    if reco.loc[reco["action"].eq("cancel"), "chosen_risk"].ne(1).any():
+    if reco.loc[actions.eq("cancel"), "chosen_risk"].ne(1).any():
         raise ValueError("cancellation must forgo all modeled rides")
-    keep = reco["action"].eq("keep").to_numpy()
+    keep = actions.eq("keep").to_numpy()
     if (chosen_risk[keep] != original_risk[keep]).any():
         raise ValueError("keeping an hour must preserve its modeled risk")
     change = expected * (original_risk - chosen_risk)
-    change[reco["action"].eq("shift").to_numpy()] *= transfer_efficiency
+    change[actions.eq("shift").to_numpy()] *= transfer_efficiency
     lost = expected * original_risk
     if not np.isfinite(change.sum()) or not np.isfinite(lost.sum()):
         raise ValueError("policy scenario totals must be finite")
@@ -142,28 +143,28 @@ def ram_table(
     reco: pd.DataFrame, risk_col: str = "risk", transfer_efficiency: float = 1.0
 ) -> dict:
     """Signed risk-weighted scenario change, including cancellation losses."""
-    recovered, lost_by_hour = _scenario_values(reco, risk_col, transfer_efficiency)
-    lost = float(lost_by_hour.sum())
-    total = float(recovered.sum())
-    shifts = reco[reco["action"] == "shift"]
+    ride_change, lost_by_hour = _scenario_values(reco, risk_col, transfer_efficiency)
+    total_loss = float(lost_by_hour.sum())
+    total_change = float(ride_change.sum())
+    shifted = reco["action"].eq("shift").to_numpy()
+    cancelled = reco["action"].eq("cancel").to_numpy()
+    shifts = reco[shifted]
     distinct_slots = int(shifts.groupby(["day", "target_hour"]).ngroups)
     return {
-        "recovered_rides": total,
-        "recovered_minutes": total * config.MEAN_RIDE_MIN,
-        "gross_recovered_rides": float(np.maximum(0.0, recovered).sum()),
-        "foregone_rides": float(-np.minimum(0.0, recovered).sum()),
-        "cancellation_loss": float(-recovered[reco["action"].eq("cancel")].sum()),
-        "shift_loss": float(
-            -np.minimum(0.0, recovered[reco["action"].eq("shift")]).sum()
-        ),
+        "recovered_rides": total_change,
+        "recovered_minutes": total_change * config.MEAN_RIDE_MIN,
+        "gross_recovered_rides": float(np.maximum(0.0, ride_change).sum()),
+        "foregone_rides": float(-np.minimum(0.0, ride_change).sum()),
+        "cancellation_loss": float(-ride_change[cancelled].sum()),
+        "shift_loss": float(-np.minimum(0.0, ride_change[shifted]).sum()),
         "transfer_efficiency": float(transfer_efficiency),
-        "lost_rides_no_adapt": lost,
-        "ram_pct_of_lost": float(total / lost) if lost else None,
-        "share_shifted": float((reco["action"] == "shift").mean()),
-        "share_cancel": float((reco["action"] == "cancel").mean()),
+        "lost_rides_no_adapt": total_loss,
+        "ram_pct_of_lost": float(total_change / total_loss) if total_loss else None,
+        "share_shifted": float(shifted.mean()),
+        "share_cancel": float(cancelled.mean()),
         "n_shifts": len(shifts),
         "distinct_target_slots": distinct_slots,
-        "per_hour": pd.Series(recovered, index=reco.index),
+        "per_hour": pd.Series(ride_change, index=reco.index),
     }
 
 
