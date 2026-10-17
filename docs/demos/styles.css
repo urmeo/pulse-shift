@@ -8,7 +8,7 @@ video {
   border: 1px solid var(--border);
   border-radius: 12px;
 }
-video:focus-visible, summary:focus-visible {
+video:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 4px;
 }
@@ -17,11 +17,5 @@ video::cue {
   background: rgb(0 0 0 / 85%);
 }
 .video-links { font-size: 0.95rem; }
-details {
-  padding: 16px 20px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-}
-summary { cursor: pointer; }
+details { background: var(--surface); }
 details li { margin-top: 8px; }

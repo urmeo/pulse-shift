@@ -5,7 +5,7 @@ PulseShift estimates the chance that hourly Capital Bikeshare rides fall below h
 <a href="results/figures/pipeline.svg">
   <picture>
     <source media="(max-width: 640px)" srcset="results/figures/pipeline-mobile.svg" width="360" height="2704">
-    <img src="results/figures/pipeline.svg" width="1280" height="1440" alt="PulseShift signal flow: DC records become a verified hourly panel, low-demand labels and 12 features. Separate historical and browser fits lead to evaluation and fixed-model scoring. Only forecast scores enter hour selection. Candidate-hour limits, DC AQI associations and an independent Seoul refit complete the pipeline.">
+    <img src="results/figures/pipeline.svg" width="1280" height="1440" alt="DC rides, weather and AQI form hourly low-demand labels and 12 features. Separate fits lead to 2024 evaluation and fixed browser estimates; only forecasts enter hour selection. AQI associations and an independent Seoul refit support the research.">
   </picture>
 </a>
 
@@ -21,19 +21,11 @@ Scores describe the unweighted model trained on **16,150 hours in 2022–2023** 
 
 ## Model evaluation
 
-These charts use the historical 2024 test set.
-
 [![Five models compared by AUROC, average precision and Brier score on the 2024 test set](results/figures/model_comparison.png)](results/figures/model_comparison.png)
-
-Higher AUROC and average precision are better; a lower Brier score is better.
 
 [![ROC curves for climatology and the two logistic variants on the 2024 test set](results/figures/roc.png)](results/figures/roc.png)
 
-ROC curves compare true-positive and false-positive rates across thresholds.
-
 [![Precision–recall curves for five models, with the observed event rate as a reference](results/figures/precision_recall.png)](results/figures/precision_recall.png)
-
-Precision–recall curves show how many flagged hours have low demand as recall increases.
 
 [![Predicted probabilities compared with observed low-demand rates for the two logistic variants](results/figures/reliability.png)](results/figures/reliability.png)
 
@@ -47,7 +39,7 @@ The unweighted model predicted **6.88%** low demand on average; the observed rat
 | Balanced logistic + isotonic calibration | 0.940 | 0.466 | 0.029 | 0.064 |
 | Gradient boosting | 0.942 | 0.526 | 0.025 | 0.046 |
 
-For the unweighted model, **95% intervals from resampling whole days** are **0.900–0.967** for AUROC, **0.319–0.638** for average precision and **0.017–0.026** for Brier score. Download the [model scores](results/tables/model_comparison.csv), [confidence intervals](results/tables/served_ci.csv) or [test predictions](results/tables/holdout_predictions.csv).
+For the unweighted model, **95% whole-day bootstrap intervals** are **0.900–0.967** for AUROC, **0.319–0.638** for average precision and **0.017–0.026** for Brier score. Download the [model scores](results/tables/model_comparison.csv), [confidence intervals](results/tables/served_ci.csv) or [test predictions](results/tables/holdout_predictions.csv).
 
 ## Time-shift scenario
 
@@ -55,7 +47,7 @@ A simulated shift of up to **three hours** gives a net risk-weighted gain of **3
 
 [![Net risk-weighted ride change by month, including cancellation and shift losses](results/figures/ram_by_month.png)](results/figures/ram_by_month.png)
 
-The analysis compares observed active hours on the same day within ±3 hours using historical 2024 predictions, with heat index below 103°F and AQI below 150. It places no capacity limit on target hours. These are model-based scenario weights, not observed ride recovery.
+Targets are observed active hours on the same day within ±3 hours, with heat index below 103°F and AQI below 150. Target capacity is unconstrained. The historical 2024 predictions supply scenario weights; actual ride recovery was not measured.
 
 | Simulated shifts | Cancellations | Study-threshold violations |
 | ---: | ---: | ---: |
@@ -85,7 +77,7 @@ AQI associations use applicable records across 2022–2024. Daily and hourly ass
 | ---: | ---: | ---: | ---: | ---: |
 | 6,305 | 2,160 | 0.873 | 0.694 | 0.064 |
 
-The Seoul analysis fits city-specific coefficients and holds out the **latest 25% of dates within each season**, keeping whole dates together. It does not test transfer of the DC coefficients or use a global chronological forecast split. See the [Seoul results](results/tables/seoul_validation.csv) and [dataset and split metadata](results/tables/seoul_provenance.json).
+Seoul uses city-specific coefficients and holds out the **latest 25% of dates within each season**, keeping whole dates together. This is not a DC coefficient transfer or a global chronological forecast test. See the [Seoul results](results/tables/seoul_validation.csv) and [dataset and split metadata](results/tables/seoul_provenance.json).
 
 ### Data and tools
 
@@ -115,7 +107,7 @@ The Seoul analysis fits city-specific coefficients and holds out the **latest 25
 | <a href="https://urmeo.github.io/pulse-shift/docs/demos/#app"><picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/media/app-desktop.png"><img src="docs/media/app-preview.gif" alt="App recording preview: change precipitation, read the updated demand estimate and inspect the heat-index study warning."></picture></a> | <a href="https://urmeo.github.io/pulse-shift/docs/demos/#results"><picture><source media="(prefers-reduced-motion: reduce)" srcset="docs/media/results-overview.png"><img src="docs/media/results-preview.gif" alt="Results recording preview: follow the pipeline and inspect historical model comparisons, curves, calibration and simulated time shifts."></picture></a> |
 | [Watch the app video](https://urmeo.github.io/pulse-shift/docs/demos/#app) · [MP4](docs/media/app-walkthrough.mp4) | [Watch the results video](https://urmeo.github.io/pulse-shift/docs/demos/#results) · [MP4](docs/media/results-walkthrough.mp4) |
 
-The app recording uses manual conditions. The results recording shows historical evaluation and simulations; live forecast accuracy and actual ride recovery remain unmeasured.
+The app video uses manual conditions. The results video shows historical evaluation and simulations. Live forecast accuracy remains unmeasured.
 
 </details>
 

@@ -2,21 +2,16 @@
 
 [Project](../README.md) · [Visual report](https://urmeo.github.io/pulse-shift/results/) · [Figma source](https://www.figma.com/design/yhY22TCHa8m8mhBi1Z4RCw?node-id=2-2)
 
-DC rides, weather and AQI become hourly examples with a shared low-demand definition and 12 features. The pipeline then follows two separate paths: historical evaluation and browser use.
+DC rides, weather and AQI become labeled hours with 12 features. Historical evaluation and browser use fit separate models.
 
 <a href="../results/figures/pipeline.svg">
   <picture>
     <source media="(max-width: 640px)" srcset="../results/figures/pipeline-mobile.svg" width="360" height="2704">
-    <img src="../results/figures/pipeline.svg" width="1280" height="1440" alt="PulseShift signal flow: DC records become a verified hourly panel, low-demand labels and 12 features. Separate historical and browser fits lead to evaluation and fixed-model scoring. Only forecast scores enter hour selection. Candidate-hour limits, DC AQI associations and an independent Seoul refit complete the pipeline.">
+    <img src="../results/figures/pipeline.svg" width="1280" height="1440" alt="DC rides, weather and AQI form hourly low-demand labels and 12 features. Separate fits lead to 2024 evaluation and fixed browser estimates; only forecasts enter hour selection. AQI associations and an independent Seoul refit support the research.">
   </picture>
 </a>
 
-- **Historical evaluation:** fit on 2022–2023, test on 2024 and use those test estimates for simulated same-day shifts.
-- **Browser use:** refit on all active 2022–2024 hours and export fixed parameters. Manual inputs give one estimate; forecasts also let the app compare eligible hours.
-
-AQI and smoke analyses and an independent Seoul refit support the research. These checks do not change the browser parameters. This is a prototype for aggregate bike-share demand; live forecast accuracy and actual time-shift benefits remain unmeasured.
-
-The [design notes](figma/README.md) link the editable desktop and mobile frames, native exports and previous Figma design.
+[Design notes](figma/README.md) link the editable frames, native exports and previous Figma design.
 
 ## 1. Assemble the DC panel
 
@@ -31,11 +26,11 @@ An hour with no trip records becomes zero only after its monthly archive has bee
 
 The ride/weather join is an inner join. Limited gaps in temperature, humidity, wind and visibility are interpolated or filled. Daily EPA AQI is forward/backward filled; missing precipitation becomes zero. Rows still missing model features are removed. The resulting panel has **26,289 network-hours** across 2022–2024. Its **15 absent calendar hours** comprise six ambiguous fall-back hours and nine hours without weather rows.
 
-The [source-coverage audit](../results/tables/zero_hour_audit.json) records the archive hashes and restored zero-trip hour: **2022-01-04 at 02:00 DC time**. It uses EPA daily AQI, falls below the active-hour floor and does not change the model's training or test membership. Zero means no recorded trip starts in the published source, not proof that no travel occurred.
+The [source-coverage audit](../results/tables/zero_hour_audit.json) records archive hashes and the restored zero-trip hour, which falls below the active-hour floor. Zero means no recorded trip starts in the published source.
 
 Gap filling occurs across the panel before the year split. This is retrospective observational preprocessing; the evaluation does not reproduce every data-availability condition of a live forecast. CAMS source values are approximately 45 km and three-hourly, returned as hourly API values.
 
-The saved panel has deterministic gzip bytes and a SHA-256 checksum. [Ingestion](../research/pulseshift/ingest.py), [panel assembly](../research/pulseshift/panel.py) and [source configuration](../research/pulseshift/config.py) define this stage. [build_data.py](../research/scripts/build_data.py) rebuilds the panel from public sources.
+The saved panel has a SHA-256 checksum. [Ingestion](../research/pulseshift/ingest.py), [panel assembly](../research/pulseshift/panel.py) and [source configuration](../research/pulseshift/config.py) define this stage.
 
 ## 2. Define the target and features
 
@@ -45,7 +40,6 @@ Expected rides are the **2022–2023 median** for each season × weekday/weekend
 | --- | --- |
 | Expected rides ≥20 | Retain the hour for model fitting and evaluation. |
 | Actual rides <0.5 × expected rides | Label the hour as low demand. |
-| Otherwise | Label an active hour as not low demand. |
 
 This yields **24,354 active hours**. The same training-fitted expected-ride baseline supplies labels for both the historical fit and the all-years browser refit.
 
@@ -58,11 +52,11 @@ The [12 model features](../research/pulseshift/features.py) are heat index, cold
 | Training | 2022–2023 | 16,150 |
 | Test | 2024 | 8,204 |
 
-Five variants share this historical test: climatology, unweighted logistic, balanced logistic, balanced logistic with isotonic calibration, and gradient boosting. The calibrated variant uses ordinary **five-fold classification cross-validation within the training data**. It does not use a separate calibration year or a time-series fold scheme.
+Five variants share this test: climatology, unweighted logistic, balanced logistic, balanced logistic with isotonic calibration, and gradient boosting. Calibration uses ordinary **five-fold classification cross-validation within the training data**, without a separate calibration year or time blocking.
 
 [run_analysis.py](../research/scripts/run_analysis.py) saves test probabilities, model scores, ROC and precision–recall curves, calibration and decision curves. Confidence intervals for the **unweighted model** resample whole test days.
 
-These intervals condition on the fitted model and saved labels. They preserve dependence within each day and assume independent days; they do not include model-fitting uncertainty or dependence across consecutive days. At least two sampling units and 80% usable draws are required. [Interval diagnostics](../results/tables/served_ci.csv) record draw counts and unavailable estimates. Calibration slopes are unavailable for constant predictions, separated outcomes or failed convergence. Log loss uses float64 endpoint protection; calibration fits standardized logits and then restores the original slope and intercept units.
+These intervals condition on the fitted model and saved labels. They preserve dependence within each day and assume independent days, excluding model-fitting uncertainty and dependence across consecutive days. At least two sampling units and 80% usable draws are required. [Interval diagnostics](../results/tables/served_ci.csv) record draw counts and unavailable estimates. Calibration slopes are unavailable for constant predictions, separated outcomes or failed convergence. Log loss uses float64 endpoint protection; calibration fits standardized logits and restores the original coefficient units.
 
 | Check | What varies or is measured |
 | --- | --- |
@@ -73,9 +67,9 @@ These intervals condition on the fitted model and saved labels. They preserve de
 | Time-shift scenario | Same-day windows of ±2, ±3 or ±4 hours; the main scenario uses ±3 hours |
 | Smoke definition | AQI thresholds of 80, 100 or 120 |
 
-The [model code](../research/pulseshift/models.py), [calibration code](../research/pulseshift/calibration.py), [metric and bootstrap code](../research/pulseshift/evaluation.py) and [recorded tables](../results/tables/) provide the details.
+Source: [models](../research/pulseshift/models.py), [calibration](../research/pulseshift/calibration.py) and [metrics and bootstrap intervals](../research/pulseshift/evaluation.py).
 
-## 4. Keep the historical policy and browser forecast distinct
+## 4. Compare historical shifts and forecast hours
 
 | | Historical time-shift simulation | Browser forecast comparison |
 | --- | --- | --- |
@@ -90,7 +84,9 @@ If the original hour meets the study heat and AQI limits, the historical policy 
 
 The scenario weights each hour's risk change by its expected rides. It sums gains and losses, including all foregone baseline demand on cancellation. Full shift transfer gives a net **33.9%** relative to risk-weighted baseline loss (95% interval **28.5–39.1%**). At 50% shift transfer, signed shift changes are halved while cancellation losses stay fixed; the net is **15.5%**.
 
-The interval resamples paired daily net changes and baseline losses with the model, expected-ride baseline and policy fixed. Undefined denominator draws are excluded; fewer than two days or 80% usable draws leaves the interval unavailable. Multiple source hours can share a target, with no capacity constraint. Ride probabilities are scenario weights, not predicted ride counts; the optional minutes conversion assumes 13 minutes per ride unit. The [policy implementation](../research/pulseshift/ram.py) and [threshold audit](../research/pulseshift/safety.py) record the rules. Neither path establishes personal exercise safety.
+The interval resamples paired daily net changes and baseline losses with the model, expected-ride baseline and policy fixed. Undefined denominator draws are excluded; fewer than two days or 80% usable draws leaves the interval unavailable. Multiple source hours can share a target, with no capacity constraint. Ride probabilities are scenario weights, not predicted ride counts; the optional minutes conversion assumes 13 minutes per ride unit. Source: [policy](../research/pulseshift/ram.py) and [threshold audit](../research/pulseshift/safety.py).
+
+These are aggregate demand scenarios. Actual ride recovery and live forecast accuracy remain unmeasured. Neither path establishes personal exercise safety.
 
 ## 5. Export and run the browser model
 
@@ -98,7 +94,7 @@ The interval resamples paired daily net changes and baseline losses with the mod
 
 The [browser code](../app/app.js) derives the same feature vector, applies the exported standardization and computes the logistic probability. Manual input gives a single estimate. Forecast loading joins weather and AQI by timestamp, checks units and complete inputs, then compares daytime hours under the study exclusions. Editing inputs clears the forecast suggestion.
 
-The app's 2024 AUROC and Brier metadata describe a separate 2022–2023-trained holdout model. They are not test measurements of the all-years coefficients.
+The app's 2024 AUROC and Brier metadata describe the 2022–2023-trained holdout model, not the all-years coefficients.
 
 ## 6. Trace the additional analyses separately
 
@@ -135,7 +131,7 @@ python3 -m venv .venv
 PYTHONPATH=research .venv/bin/python research/scripts/run_analysis.py
 ```
 
-Generated research metadata record the source commit, source hashes, runtime and panel checksum. Presentation changes can rebuild the report from the saved summary without refitting the models. Existing numerical artifacts retain the provenance of their original analysis run.
+Research metadata record the source commit, hashes, runtime and panel checksum. Rebuilding the report from saved results does not refit models or change numerical provenance.
 
 To run the code and browser checks, use the same Python environment, Node.js 18 or newer and an installed copy of Google Chrome:
 
@@ -144,6 +140,4 @@ To run the code and browser checks, use the same Python environment, Node.js 18 
 .venv/bin/python research/scripts/verify.py
 ```
 
-The final command runs the JavaScript and Python tests, lint, formatting, type checks and desktop/mobile Chrome checks. It uses a temporary local server and does not rewrite the model or results, or call forecast services.
-
-Author and sole contributor: [urme](https://github.com/urmeo).
+The verifier runs JavaScript and Python tests, lint, formatting, type checks and desktop/mobile Chrome checks. It uses a temporary local server without rewriting results or calling forecast services.

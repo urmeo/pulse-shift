@@ -31,9 +31,7 @@ The figures and tables in this directory come from the committed DC panel and th
 
 The panel combines Capital Bikeshare rides, NOAA weather from Reagan National Airport (DCA), and AQI. An hour has low demand when rides fall below **50% of expected rides**. Expected rides use the 2022–2023 median for each season, weekday/weekend group and hour, adjusted by training-year ride volume. The 2024 target uses the 2023 volume adjustment.
 
-Ride counts cover each validated source month, including hours with zero recorded trips. Missing or invalid source archives stop the build; ambiguous timestamps remain unknown and are excluded before labeling. The [coverage audit](tables/zero_hour_audit.json) records all 36 archive hashes and the restored **2022-01-04 02:00 DC** hour. This hour has zero recorded trips and fewer than 20 expected rides, so the active-hour counts and model inputs are unchanged.
-
-The correction preserves existing weather, AQI and PM2.5 values from the saved panel. The added January hour uses the original NOAA and EPA records; historical CAMS values were not fetched again. Expected rides and labels were recalculated across the panel, then the DC analysis and browser export were rerun.
+Ride counts cover each validated source month, including hours with zero recorded trips. Missing or invalid archives stop the build; ambiguous timestamps remain unknown and are excluded before labeling. The [coverage audit](tables/zero_hour_audit.json) records all 36 archive hashes and the restored zero-trip hour, which falls below the active-hour floor.
 
 AQI effects are reported only when exposure varies independently of the controls and fixed effects. [Coefficient diagnostics](tables/aqi_identification.csv) record matrix rank, residual exposure variation and usable bootstrap draws. Unidentified effects have no coefficient or detectable-effect estimate.
 
@@ -57,7 +55,7 @@ Adding AQI after weather changed AUROC from **0.936475 to 0.936477**; average pr
 
 The [Seoul analysis](tables/seoul_validation.csv) reached AUROC **0.873**, average precision **0.694** and Brier score **0.064**. It used **6,305 training hours and 2,160 test hours**, holding out the latest 25% of dates within each season. This split keeps whole dates together. It is not a global chronological forecast test or a transfer of the DC coefficients.
 
-The [Seoul predictions](tables/seoul_predictions.csv) and [provenance metadata](tables/seoul_provenance.json) record the outputs, dataset hash and split conditions.
+Download the [Seoul predictions](tables/seoul_predictions.csv) and [dataset and split metadata](tables/seoul_provenance.json).
 
 ## Simulated time shifts
 
@@ -73,7 +71,5 @@ These are scenario weights, not observed ride recovery or predicted ride counts.
 - The analysis uses public aggregate data under each provider's terms. The [MIT license](../LICENSE) covers this repository's code.
 
 The [summary metadata](tables/summary.json) record source hashes, runtime versions and the panel checksum.
-
-[Open the browser app](https://urmeo.github.io/pulse-shift/) · [View the app screenshot](figures/pulseshift-ui.jpg).
 
 Method references: [calibration](https://doi.org/10.1186/s12916-019-1466-7), [precision–recall evaluation](https://doi.org/10.1371/journal.pone.0118432), [decision curves](https://doi.org/10.1177/0272989X06295361), and the [Seoul Bike Sharing Demand dataset](https://doi.org/10.24432/C5F62R).
