@@ -1,0 +1,30 @@
+{
+  "weather": {
+    "hourly_units": {
+      "time": "unixtime",
+      "temperature_2m": "°F",
+      "relative_humidity_2m": "%",
+      "wind_speed_10m": "mp/h",
+      "precipitation": "inch",
+      "visibility": "ft"
+    },
+    "hourly": {
+      "time": [1791640800, 1791644400, 1791648000],
+      "temperature_2m": [75, 78, 80],
+      "relative_humidity_2m": [60, 60, 60],
+      "wind_speed_10m": [0, 8, 9],
+      "precipitation": [0.24, 0.1, 0],
+      "visibility": [15840, 52800, 79200]
+    }
+  },
+  "air": {
+    "hourly_units": {
+      "time": "unixtime",
+      "us_aqi": "USAQI"
+    },
+    "hourly": {
+      "time": [1791640800, 1791644400, 1791648000],
+      "us_aqi": [42, 70, 160]
+    }
+  }
+}

@@ -1,0 +1,36 @@
+WEBVTT
+
+00:00.000 --> 00:02.500
+Unweighted model: scores from the 2024 test.
+
+00:03.300 --> 00:06.800
+DC records: 26,289 hours.
+Historical testing and browser refit are separate.
+
+00:07.600 --> 00:12.100
+Unweighted 2024 estimates simulate time shifts.
+Only forecasts compare eligible browser hours.
+
+00:12.900 --> 00:16.400
+AQI and smoke: observational associations.
+Seoul uses its own data, split and model.
+
+00:17.200 --> 00:20.200
+Compare five models on 8,204 test hours from 2024.
+
+00:21.000 --> 00:23.000
+ROC: true-positive versus false-positive rates.
+
+00:23.800 --> 00:25.800
+Precision–recall curves for the low-demand label.
+
+00:26.600 --> 00:29.600
+Mean prediction: 6.88%; observed rate: 2.46%.
+Probabilities overestimate low demand.
+
+00:30.400 --> 00:32.400
+Compare the recorded model scores.
+
+00:33.200 --> 00:36.700
+Net scenario gain: 33.9% with full shift transfer;
+15.5% at half shift transfer; cancellations unchanged.

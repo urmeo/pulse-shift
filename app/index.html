@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; connect-src https://api.open-meteo.com https://air-quality-api.open-meteo.com; base-uri 'none'" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Estimate the chance of low DC-area bike-share demand from weather and air quality. The research model runs in your browser." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16'><circle cx='8' cy='8' r='7' fill='%2338bdf8'/></svg>" />
+  <title>PulseShift</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app">
+    <header>
+      <h1>PulseShift</h1>
+      <p class="tag">Estimate how weather and air quality relate to low DC-area bike-share demand.</p>
+    </header>
+
+    <form class="panel" id="form" aria-label="DC demand model inputs">
+      <noscript><p class="error">Enable JavaScript to use the demand model.</p></noscript>
+      <div class="grid">
+        <label>Temperature (°F)
+          <input type="number" id="temp" value="85" min="-40" max="130" step="any" required />
+        </label>
+        <label>Humidity (%)
+          <input type="number" id="humidity" value="55" min="0" max="100" step="any" required />
+        </label>
+        <label>US Air Quality Index (AQI)
+          <input type="number" id="aqi" value="60" min="0" max="500" step="any" required />
+        </label>
+        <label>Wind (mph)
+          <input type="number" id="wind" value="6" min="0" max="100" step="any" required />
+        </label>
+        <label>Precipitation (in/hr)
+          <input type="number" id="precip" value="0" min="0" max="5" step="any" required />
+        </label>
+        <label>Visibility (mi)
+          <input type="number" id="visibility" aria-describedby="visibility-smoke-hint" value="10" min="0" max="10" step="any" required />
+        </label>
+        <label>Hour (DC time)
+          <select id="hour"></select>
+        </label>
+        <label class="check"><input type="checkbox" id="weekend" /> Weekend</label>
+        <label class="check"><input type="checkbox" id="smoke" aria-describedby="visibility-smoke-hint" /> Smoke or haze present</label>
+        <p class="hint" id="visibility-smoke-hint">Enter visibility and smoke or haze separately. AQI does not set the checkbox.</p>
+      </div>
+      <button type="button" id="live" class="ghost">Load DC forecast</button>
+      <p class="error" id="error" role="alert"></p>
+    </form>
+
+    <section class="result" id="result" aria-label="Low bike-share demand estimate" aria-live="polite" aria-atomic="true" hidden>
+      <div class="risk" id="risk">
+        <span class="pct" id="pct">—</span>
+        <span class="band" id="band">—</span>
+      </div>
+      <p class="reco" id="reco"></p>
+      <p class="detail" id="detail"></p>
+      <p class="detail" id="besthour"></p>
+      <p class="hint" id="forecastnote"></p>
+    </section>
+
+    <footer>
+      <span id="meta"></span>
+      <a href="https://github.com/urmeo/pulse-shift#model-evaluation">Model evaluation</a>
+      <a href="https://github.com/urmeo/pulse-shift">Source code</a>
+      <a href="https://open-meteo.com/">Weather data</a>
+    </footer>
+    <p class="hint" id="modelnote"></p>
+
+  </main>
+
+  <script src="model.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+.DS_Store
+.venv/
+.env
+.env.*
+__pycache__/
+*.pyc
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+research/data/raw/
+research/data/interim/
+research/data/processed/.*.part

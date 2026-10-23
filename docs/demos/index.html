@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self'; base-uri 'none'">
+  <meta name="description" content="Recorded PulseShift app and research results walkthroughs, with captions and MP4 downloads.">
+  <title>PulseShift · App and results videos</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <nav aria-label="Main navigation">
+      <a href="../../app/">PulseShift app</a>
+      <a href="https://github.com/urmeo/pulse-shift#model-evaluation">Model evaluation</a>
+      <a href="https://github.com/urmeo/pulse-shift#readme">README</a>
+    </nav>
+    <header>
+      <h1>App and results videos</h1>
+      <p>Two silent recordings with English captions.</p>
+    </header>
+    <nav aria-label="Video selection">
+      <a href="#app">Manual app estimates</a>
+      <a href="#results">Pipeline and research charts</a>
+    </nav>
+
+    <section id="app" aria-labelledby="app-title">
+      <h2 id="app-title">Manual app estimates</h2>
+      <p>Enter weather and AQI, change precipitation, and see the heat-index study warning.</p>
+      <video controls playsinline preload="metadata" poster="../media/app-desktop.png" aria-label="Manual input and study-threshold demonstration" aria-describedby="app-transcript">
+        <source src="../media/app-walkthrough.mp4" type="video/mp4">
+        <track kind="captions" src="../media/app-captions.vtt" srclang="en" label="English" default>
+        <p><a href="../media/app-walkthrough.mp4">Download the app recording</a>.</p>
+      </video>
+      <p class="video-links"><a href="../media/app-walkthrough.mp4" download>Download MP4</a> · <a href="../../app/">Try the app</a></p>
+      <details id="app-transcript">
+        <summary>Steps shown in the recording</summary>
+        <ol>
+          <li>Start with 85°F, 55% humidity, AQI 60 and 17:00 DC time. Read the estimated chance of low network demand.</li>
+          <li>Change precipitation to 0.4 inches per hour. The model estimate updates immediately.</li>
+          <li>Set temperature to 100°F and humidity to 39%. The calculated heat index is 108.5°F, so the app shows that a study threshold is exceeded.</li>
+          <li>Restore the original manual example. Loading a live DC forecast is a separate action.</li>
+        </ol>
+      </details>
+    </section>
+
+    <section id="results" aria-labelledby="results-title">
+      <h2 id="results-title">Pipeline and research charts</h2>
+      <p>A historical recording of the pipeline, model comparisons, curves, calibration and simulated time shifts.</p>
+      <video controls playsinline preload="metadata" poster="../media/results-overview.png" aria-label="Research pipeline and historical results walkthrough" aria-describedby="results-transcript">
+        <source src="../media/results-walkthrough.mp4" type="video/mp4">
+        <track kind="captions" src="../media/results-captions.vtt" srclang="en" label="English" default>
+        <p><a href="../media/results-walkthrough.mp4">Download the results recording</a>.</p>
+      </video>
+      <p class="video-links"><a href="../media/results-walkthrough.mp4" download>Download MP4</a> · <a href="https://github.com/urmeo/pulse-shift#model-evaluation">Charts</a></p>
+      <details id="results-transcript">
+        <summary>What the recording covers</summary>
+        <ol>
+          <li>Shared DC data feed historical evaluation and a separate all-years browser refit. Only forecast inputs trigger hour comparison.</li>
+          <li>Five model variants evaluated on the 2024 test set.</li>
+          <li>ROC and precision–recall curves, followed by probability calibration.</li>
+          <li>Net time-shift scenarios, including cancellation losses and the assumed transfer of shifted demand.</li>
+        </ol>
+      </details>
+    </section>
+    <p class="note">The app estimates aggregate bike-share demand. The <a href="https://github.com/urmeo/pulse-shift#model-evaluation">model evaluation</a> describes historical scores and simulated recovery. Live forecast accuracy and actual ride recovery have not been measured.</p>
+    <footer><a href="../../LICENSE">MIT license</a></footer>
+  </main>
+</body>
+</html>

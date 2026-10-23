@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "Please cite this software when using its code or results."
+type: software
+title: "PulseShift: Weather and Bike-Share Demand"
+version: 1.1.0
+date-released: 2026-10-06
+url: "https://urmeo.github.io/pulse-shift/"
+repository-code: "https://github.com/urmeo/pulse-shift"
+license: MIT
+authors:
+  - given-names: urme
+    alias: urmeo
