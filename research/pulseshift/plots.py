@@ -306,7 +306,7 @@ def monthly_calibration(test: pd.DataFrame, probabilities: np.ndarray) -> None:
     _save_detail(
         fig,
         "monthly_calibration.png",
-        "2024 calibration by month",
+        f"{config.TEST_YEAR} calibration by month",
         f"{config.TEST_YEAR} holdout · unweighted logistic model trained on "
         f"{min(config.TRAIN_YEARS)}–{max(config.TRAIN_YEARS)} · {len(test):,} eligible hours",
         "Points are monthly means; n is the number of eligible hours. "
@@ -345,7 +345,7 @@ def threshold_tradeoffs(labels, probabilities) -> None:
     _save_detail(
         fig,
         "threshold_tradeoffs.png",
-        "2024 threshold trade-offs",
+        f"{config.TEST_YEAR} threshold trade-offs",
         f"{config.TEST_YEAR} holdout · unweighted logistic model · "
         f"{len(labels):,} eligible hours / {events:,} low-demand hours",
         "Thresholds are shown at one-percentage-point steps. "
@@ -398,7 +398,7 @@ def feature_ablation(comparison: pd.DataFrame) -> None:
     _save_detail(
         fig,
         "feature_ablation.png",
-        "Feature groups on the 2024 holdout",
+        f"Feature groups on the {config.TEST_YEAR} holdout",
         f"Cumulative feature groups · same {min(config.TRAIN_YEARS)}–"
         f"{max(config.TRAIN_YEARS)} training / {config.TEST_YEAR} holdout · "
         "unweighted logistic models",
