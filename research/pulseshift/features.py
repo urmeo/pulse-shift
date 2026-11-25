@@ -26,13 +26,19 @@ def heat_index_f(temp_f, humidity) -> np.ndarray:
     return np.round(np.where(simple < 80, simple, hi), 1)
 
 
+SEASON_MONTHS = {
+    "winter": (12, 1, 2),
+    "spring": (3, 4, 5),
+    "summer": (6, 7, 8),
+    "fall": (9, 10, 11),
+}
+SEASON_BY_MONTH = {
+    month: season for season, months in SEASON_MONTHS.items() for month in months
+}
+
+
 def season_of(month: pd.Series) -> pd.Series:
-    return pd.cut(
-        month,
-        bins=[0, 2, 5, 8, 11, 12],
-        labels=["winter", "spring", "summer", "fall", "winter"],
-        ordered=False,
-    ).astype(str)
+    return month.map(SEASON_BY_MONTH)
 
 
 def add_temporal(df: pd.DataFrame, ts_col: str = "ts_local") -> pd.DataFrame:
