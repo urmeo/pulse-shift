@@ -16,7 +16,7 @@ from .resampling import cluster_members, row_samples, sufficient_draws, valid_dr
 
 
 class CalibrationUnavailable(ValueError):
-    """Unavailable calibration."""
+    """Raised when the data cannot support a calibration slope and intercept."""
 
 
 def _logit(probabilities: np.ndarray) -> np.ndarray:

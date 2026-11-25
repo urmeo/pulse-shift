@@ -13,6 +13,14 @@ export const INPUT_RANGES = {
 export const DAYTIME_HOURS = { first: 6, last: 21 };
 const NUMERIC_INPUTS = Object.keys(INPUT_RANGES);
 
+function roundHalfToEven(value, decimals) {
+  const scale = 10 ** decimals;
+  const scaled = value * scale;
+  const floor = Math.floor(scaled);
+  const rounded = scaled - floor === 0.5 ? floor + (Math.abs(floor) % 2) : Math.round(scaled);
+  return rounded / scale;
+}
+
 export function heatIndex(temperatureF, humidity) {
   const simple = (0.5 * (temperatureF + 61 + (temperatureF - 68) * 1.2 + humidity * 0.094) + temperatureF) / 2;
   let heatIndexF = simple;
@@ -28,11 +36,7 @@ export function heatIndex(temperatureF, humidity) {
       heatIndexF += ((humidity - 85) / 10) * ((87 - temperatureF) / 5);
     }
   }
-  const scaled = heatIndexF * 10;
-  const floor = Math.floor(scaled);
-  // NumPy rounding.
-  const rounded = scaled - floor === 0.5 ? floor + (Math.abs(floor) % 2) : Math.round(scaled);
-  return rounded / 10;
+  return roundHalfToEven(heatIndexF, 1);
 }
 
 export class DemandModel {
