@@ -1,3 +1,5 @@
+import { INPUT_RANGES } from "./demand-model.mjs";
+
 export const DC_TIME_ZONE = "America/New_York";
 export const SECONDS_PER_HOUR = 3600;
 export const MILLISECONDS_PER_HOUR = SECONDS_PER_HOUR * 1000;
@@ -8,11 +10,16 @@ const dcDateFormatter = new Intl.DateTimeFormat("en-US", {
   hourCycle: "h23",
   weekday: "short",
 });
-const forecastQuery = "latitude=38.8951&longitude=-77.0364&forecast_hours=25&timeformat=unixtime&timezone=America%2FNew_York";
+const forecastQuery = "latitude=38.8951&longitude=-77.0364&forecast_hours=25&timeformat=unixtime&timezone=" +
+  encodeURIComponent(DC_TIME_ZONE);
 const weatherUrl = "https://api.open-meteo.com/v1/forecast?" + forecastQuery +
   "&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation,visibility&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch";
 const airQualityUrl = "https://air-quality-api.open-meteo.com/v1/air-quality?" + forecastQuery + "&hourly=us_aqi";
 const weatherFields = ["temperature_2m", "relative_humidity_2m", "wind_speed_10m", "precipitation", "visibility"];
+
+function withinInputRanges(input) {
+  return Object.entries(INPUT_RANGES).every(([name, { min, max }]) => input[name] >= min && input[name] <= max);
+}
 
 export function dcHourWeekend(epochSeconds) {
   const parts = dcDateFormatter.formatToParts(new Date(epochSeconds * 1000));
@@ -53,14 +60,12 @@ export function forecastInputs(weather, air, smoke, now = Date.now()) {
       wind: weatherHours.wind_speed_10m[index],
       precip: weatherHours.precipitation[index],
       aqi: aqiByTime.get(epoch),
-      visibility: Math.min(10, weatherHours.visibility[index] / visibilityUnitsPerMile),
+      visibility: Math.min(INPUT_RANGES.visibility.max, weatherHours.visibility[index] / visibilityUnitsPerMile),
       ...dcHourWeekend(epoch),
       smoke,
     };
     if (!weatherFields.every((field) => Number.isFinite(weatherHours[field][index])) || !Number.isFinite(input.aqi) ||
-        input.temp < -40 || input.temp > 130 || input.humidity < 0 || input.humidity > 100 ||
-        input.aqi < 0 || input.aqi > 500 || input.wind < 0 || input.wind > 100 ||
-        input.precip < 0 || input.precip > 5 || input.visibility < 0) continue;
+        !withinInputRanges(input)) continue;
     rows.push(input);
   }
   return rows.sort((first, second) => first.epoch - second.epoch);

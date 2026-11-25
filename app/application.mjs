@@ -1,3 +1,4 @@
+import { DAYTIME_HOURS, INPUT_RANGES } from "./demand-model.mjs";
 import {
   DC_TIME_ZONE, MILLISECONDS_PER_HOUR, SECONDS_PER_HOUR, forecastInputs,
 } from "./forecast-client.mjs";
@@ -17,6 +18,10 @@ const FORECAST_TIME = new Intl.DateTimeFormat("en-US", {
   weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
   hourCycle: "h23", timeZoneName: "short",
 });
+
+function hourLabel(hour) {
+  return String(hour).padStart(2, "0") + ":00";
+}
 
 export function percent(probability) {
   if (probability < 0.01) return "<1%";
@@ -56,10 +61,11 @@ export class PulseShiftApp {
     for (let hour = 0; hour < 24; hour++) {
       const option = this.#document.createElement("option");
       option.value = hour;
-      option.textContent = String(hour).padStart(2, "0") + ":00";
+      option.textContent = hourLabel(hour);
       fields.hour.appendChild(option);
     }
     fields.hour.value = 17;
+    for (const [id, range] of Object.entries(INPUT_RANGES)) Object.assign(fields[id], range);
     for (const id of INPUT_IDS) {
       fields[id].addEventListener("input", () => {
         this.#editRevision++;
@@ -158,7 +164,7 @@ export class PulseShiftApp {
       fields.besthour.textContent = best
         ? `Lowest estimated chance of low demand in the next 24 hours, within study limits: ${forecastTime} (${percent(best.probability)}, AQI ${Math.round(best.aqi)}).`
         : "No complete daytime forecast hour meets the study's heat and AQI limits.";
-      fields.forecastnote.textContent = "Open-Meteo weather and CAMS AQI forecasts. Hours from 06:00 to 21:00 DC time are compared. Smoke/haze uses your checkbox setting. Hours with missing data are excluded. Visibility is capped at 10 mi to match the training data.";
+      fields.forecastnote.textContent = `Open-Meteo weather and CAMS AQI forecasts. Hours from ${hourLabel(DAYTIME_HOURS.first)} to ${hourLabel(DAYTIME_HOURS.last)} DC time are compared. Smoke/haze uses your checkbox setting. Hours with missing data are excluded. Visibility is capped at ${INPUT_RANGES.visibility.max} mi to match the training data.`;
       button.textContent = "DC forecast loaded";
     } catch (error) {
       if (this.#isStale(revision)) return;

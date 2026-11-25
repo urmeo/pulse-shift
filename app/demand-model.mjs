@@ -2,7 +2,16 @@ const FEATURE_NAMES = [
   "heat_index_f", "cold_stress", "heat_stress", "aqi", "humidity", "wind_mph",
   "precip_in", "visibility_mi", "smoke_haze", "hour_sin", "hour_cos", "is_weekend",
 ];
-const NUMERIC_INPUTS = ["temp", "humidity", "aqi", "wind", "precip", "visibility"];
+export const INPUT_RANGES = {
+  temp: { min: -40, max: 130 },
+  humidity: { min: 0, max: 100 },
+  aqi: { min: 0, max: 500 },
+  wind: { min: 0, max: 100 },
+  precip: { min: 0, max: 5 },
+  visibility: { min: 0, max: 10 },
+};
+export const DAYTIME_HOURS = { first: 6, last: 21 };
+const NUMERIC_INPUTS = Object.keys(INPUT_RANGES);
 
 export function heatIndex(temperatureF, humidity) {
   const simple = (0.5 * (temperatureF + 61 + (temperatureF - 68) * 1.2 + humidity * 0.094) + temperatureF) / 2;
@@ -101,7 +110,7 @@ export class DemandModel {
     for (const input of rows) {
       if (!Number.isSafeInteger(input?.epoch)) throw new Error("Forecast timestamp is invalid.");
       const estimate = this.evaluate(input);
-      if (input.hour < 6 || input.hour > 21 || estimate.excluded) continue;
+      if (input.hour < DAYTIME_HOURS.first || input.hour > DAYTIME_HOURS.last || estimate.excluded) continue;
       if (!best || estimate.probability < best.probability ||
           (estimate.probability === best.probability && input.epoch < best.epoch)) {
         best = { ...input, ...estimate };
