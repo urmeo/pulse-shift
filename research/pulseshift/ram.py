@@ -3,15 +3,7 @@ import pandas as pd
 
 from . import config
 from .resampling import sufficient_draws, valid_draw_count
-
-
-def _safe_hours(heat_index_f, aqi):
-    return (
-        np.isfinite(heat_index_f)
-        & np.isfinite(aqi)
-        & (heat_index_f < config.HEAT_UNSAFE_F)
-        & (aqi < config.AQI_UNSAFE)
-    )
+from .safety import within_study_limits
 
 
 def recommend(
@@ -35,7 +27,7 @@ def recommend(
     original_index = df.index
     df = df.reset_index(drop=True)
     df["day"] = df["ts_local"].dt.date
-    df["safe"] = _safe_hours(df["heat_index_f"], df["aqi"])
+    df["safe"] = within_study_limits(df["heat_index_f"], df["aqi"])
 
     n = len(df)
     actions = np.empty(n, dtype=object)

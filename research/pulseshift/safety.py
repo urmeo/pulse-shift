@@ -4,6 +4,15 @@ import pandas as pd
 from . import config
 
 
+def within_study_limits(heat_index_f, aqi):
+    return (
+        np.isfinite(heat_index_f)
+        & np.isfinite(aqi)
+        & (heat_index_f < config.HEAT_UNSAFE_F)
+        & (aqi < config.AQI_UNSAFE)
+    )
+
+
 def audit(reco: pd.DataFrame, risk_col: str = "risk") -> dict:
     shifts = reco[reco["action"] == "shift"]
     risk_drop = shifts[risk_col] - shifts["chosen_risk"]
@@ -14,10 +23,9 @@ def audit(reco: pd.DataFrame, risk_col: str = "risk") -> dict:
         | ~np.isfinite(reco["target_aqi"])
         | ~reco["chosen_risk"].between(0, 1)
     )
-    unsafe_target = applicable & (
-        (reco["target_heat_index_f"] >= config.HEAT_UNSAFE_F)
-        | (reco["target_aqi"] >= config.AQI_UNSAFE)
-        | invalid_target
+    unsafe_target = invalid_target | (
+        applicable
+        & ~within_study_limits(reco["target_heat_index_f"], reco["target_aqi"])
     )
     unsafe_count = int(unsafe_target.sum())
     return {
