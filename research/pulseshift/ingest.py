@@ -273,14 +273,17 @@ def load_aqi() -> pd.DataFrame:
     return daily
 
 
+def _validate_hourly_aqi(hourly: pd.DataFrame, origin: str) -> pd.DataFrame:
+    hourly["ts_utc"] = hourly["ts_utc"].astype("datetime64[ns]")
+    if hourly["ts_utc"].isna().any() or hourly["ts_utc"].duplicated().any():
+        raise ValueError(f"hourly AQI {origin} requires unique valid UTC timestamps")
+    return hourly
+
+
 def load_aqi_hourly() -> pd.DataFrame:
     cache = config.INTERIM / "aqi_hourly_utc.csv"
     if cache.exists():
-        hourly = pd.read_csv(cache, parse_dates=["ts_utc"])
-        hourly["ts_utc"] = hourly["ts_utc"].astype("datetime64[ns]")
-        if hourly["ts_utc"].isna().any() or hourly["ts_utc"].duplicated().any():
-            raise ValueError("hourly AQI cache requires unique valid UTC timestamps")
-        return hourly
+        return _validate_hourly_aqi(pd.read_csv(cache, parse_dates=["ts_utc"]), "cache")
 
     frames = []
     for year in config.YEARS:
@@ -301,10 +304,7 @@ def load_aqi_hourly() -> pd.DataFrame:
             )
         )
 
-    hourly = pd.concat(frames, ignore_index=True)
-    hourly["ts_utc"] = hourly["ts_utc"].astype("datetime64[ns]")
-    if hourly["ts_utc"].isna().any() or hourly["ts_utc"].duplicated().any():
-        raise ValueError("hourly AQI source requires unique valid UTC timestamps")
+    hourly = _validate_hourly_aqi(pd.concat(frames, ignore_index=True), "source")
     hourly = hourly.sort_values("ts_utc").reset_index(drop=True)
     write_csv(hourly, cache)
     return hourly
