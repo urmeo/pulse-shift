@@ -99,6 +99,7 @@ Seoul uses its own coefficients and holds out the **latest 25% of dates within e
 - Historical evaluation uses observed conditions. Accuracy from forecasts issued in advance remains unmeasured.
 - Metric and time-shift intervals condition on saved labels, baseline, fitted predictions and policy. They assume independent days and exclude model-fitting uncertainty.
 - CAMS inputs are approximately 45 km and three-hourly, returned as hourly API values. Daily AQI fallback, missing hours and observational confounding limit interpretation.
+- The processed panel is checksum-verified. Raw-source downloads have no checksums, so a rebuild from source may not match it.
 
 ## Run locally
 
@@ -164,8 +165,6 @@ The app recording uses manual conditions. The results recording preserves an ear
 | Research | Python, NumPy, pandas, scikit-learn, SciPy, Matplotlib |
 | App | HTML, CSS, JavaScript ES modules |
 | Hosting | GitHub Pages |
-
-[Submission review, score and next steps](docs/submission-review.md).
 
 ## License
 
