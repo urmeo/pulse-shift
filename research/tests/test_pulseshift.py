@@ -36,7 +36,8 @@ from pulseshift.evaluation import (
     metrics,
 )
 from pulseshift.features import MODEL_FEATURES, heat_index_f
-from pulseshift.ingest import _download, _write_csv
+from pulseshift.ingest import _download
+from pulseshift.tables import write_csv
 from pulseshift.models import ClimatologyBaseline, fit_logistic, temporal_split
 from pulseshift.panel import active, expected_rides, load_panel, verify_checksum
 from pulseshift.version import __version__
@@ -996,7 +997,7 @@ def test_failed_csv_write_preserves_previous_file(tmp_path, monkeypatch, kind):
     write = (
         (lambda frame: panel.write_panel(frame, path, checksum))
         if kind == "panel"
-        else (lambda frame: _write_csv(frame, path))
+        else (lambda frame: write_csv(frame, path))
     )
     frame = pd.DataFrame({"value": [1.25]})
     write(frame)
@@ -1186,7 +1187,7 @@ def test_write_does_not_follow_a_predictable_partial_file_symlink(
         _download("https://example.test/source.zip", target)
         expected = "source data"
     else:
-        _write_csv(pd.DataFrame({"rides": [100]}), target)
+        write_csv(pd.DataFrame({"rides": [100]}), target)
         expected = "rides\n100\n"
     assert unrelated.read_text() == "keep original"
     assert target.read_text() == expected

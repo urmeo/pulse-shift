@@ -8,6 +8,7 @@ import pandas as pd
 
 from . import config
 from .provenance import atomic_output
+from .tables import write_csv
 
 
 def _download(url: str, dest: str | Path) -> Path:
@@ -32,11 +33,6 @@ def _download(url: str, dest: str | Path) -> Path:
                 f"Incomplete download: received {received_bytes} of {expected_bytes} bytes"
             )
     return destination
-
-
-def _write_csv(frame: pd.DataFrame, cache: Path) -> None:
-    with atomic_output(cache) as output:
-        frame.to_csv(output, index=False)
 
 
 def _to_numeric(series: pd.Series) -> pd.Series:
@@ -196,7 +192,7 @@ def load_bikeshare() -> pd.DataFrame:
     counts = counts.rename(columns={"member": "rides_member", "casual": "rides_casual"})
     counts["rides_total"] = counts["rides_member"] + counts["rides_casual"]
     hourly = _validate_bikeshare(counts.reset_index(), hours)
-    _write_csv(hourly, cache)
+    write_csv(hourly, cache)
     return hourly
 
 
@@ -247,7 +243,7 @@ def load_weather() -> pd.DataFrame:
     )
     aggregates.update(precip_in="max", smoke_haze="max")
     hourly = lcd.groupby("ts_utc", as_index=False).agg(aggregates)
-    _write_csv(hourly, cache)
+    write_csv(hourly, cache)
     return hourly
 
 
@@ -273,7 +269,7 @@ def load_aqi() -> pd.DataFrame:
         .agg(aqi=("AQI", "max"))
         .reset_index()
     )
-    _write_csv(daily, cache)
+    write_csv(daily, cache)
     return daily
 
 
@@ -310,5 +306,5 @@ def load_aqi_hourly() -> pd.DataFrame:
     if hourly["ts_utc"].isna().any() or hourly["ts_utc"].duplicated().any():
         raise ValueError("hourly AQI source requires unique valid UTC timestamps")
     hourly = hourly.sort_values("ts_utc").reset_index(drop=True)
-    _write_csv(hourly, cache)
+    write_csv(hourly, cache)
     return hourly
